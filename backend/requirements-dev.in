@@ -1,0 +1,6 @@
+-r requirements.in
+# Testing and security scanning
+pytest>=8.0
+httpx2
+pip-audit>=2.7
+bandit>=1.7

@@ -1,0 +1,22 @@
+"""Database foundation: the shared model base class and a function that builds an engine."""
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import DeclarativeBase
+
+# Predictable constraint names make later migrations clean and reviewable.
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+
+class Base(DeclarativeBase):
+    metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+
+def make_engine(database_url: str) -> Engine:
+    # pool_pre_ping tests a connection before use, so a restarted database does not cause errors.
+    return create_engine(database_url, pool_pre_ping=True)
