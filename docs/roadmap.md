@@ -7,7 +7,7 @@ the API, then the screens, each confirmed separately. Nothing is cut or reordere
 |---|---|---|
 | 1.1 | Project skeleton, configuration, safe errors | Done |
 | 1.2 | PostgreSQL accounts, migrations | Done |
-| 1.3 | React skeleton and API connection | SR4 groundwork |
+| 1.3 | React skeleton and API connection | Done |
 | 2.1 | Users table, Argon2id hashing, password policy, first Administrator | SR1, SR2 |
 | 2.2 | Login, sessions, logout, idle expiry, throttling, audit log | FR4, FR6, FR29, SR3, SR4 |
 | 2.3 | Role-based access control | FR5, SR5 |

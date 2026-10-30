@@ -57,6 +57,37 @@ database settings validation; `check_db` command; database permission tests.
 - My first downgrade test could pass with no migration at all. Replaced with a test that checks access
   exists while migrated and disappears after the downgrade, and added a test that the migration is registered.
 
+  ## Step 1.3: React skeleton and API connection (30 October)
+
+**Built:** React app (Vite, React Router) in `frontend/`; a development proxy so the browser talks to
+one address; the API moved under `/api`; an `apiFetch` helper that only calls `/api/` paths and never
+echoes submitted data; Home, System status and Page-not-found screens; mobile-first base styles.
+
+**Files:** `backend/app/main.py` and `backend/tests/test_app.py` (replaced); `frontend/package.json`,
+`package-lock.json`, `vite.config.js`, `index.html`; `src/main.jsx`, `App.jsx`, `api.js`, `styles.css`;
+`src/pages/Home.jsx`, `Status.jsx`, `NotFound.jsx`; `src/test/setup.js`; tests `src/api.test.js`,
+`src/App.test.jsx`, `src/pages/Status.test.jsx`; root `.gitignore` (Node lines).
+
+**Installed (resolved by npm on 30 October):** react 19.3.1, react-dom 19.3.1, react-router 7.18.5,
+vite 8.3.5, @vitejs/plugin-react 6.1.2, vitest 5.0.5, jsdom 29.1.1, @testing-library/react 16.3.3,
+@testing-library/dom 10.4.2.
+
+**Results:**
+- Backend: 44 tests passed (27 configuration, 10 application, 7 database).
+- Frontend: 15 tests passed (9 API helper, 3 Status page, 3 routing).
+- `npm run build` succeeded: 25 modules, 260 kB script (83 kB compressed).
+- `npm audit`: 0 vulnerabilities. No backend dependencies changed in this step.
+- Browser checks: the Status page, the proxy (`/api/health` through port 5173), the not-found page, the
+  API docs at `/api/docs`, and the unreachable-server message all behaved as expected.
+
+**Problems and fixes:**
+- `src/App.jsx` was not created, which caused three failures at once: the routing tests, the build, and
+  the dev server all reported `Failed to resolve import "./App.jsx"`.
+- `backend/tests/test_app.py` still held the old content, so two tests asked for `/health` and `/docs`.
+  Replacing it fixed both. Python's saved copies still remembered the old `test` folder name; clearing
+  `.pytest_cache` and `__pycache__` removed the stale path.
+- `uvicorn.exe` is blocked by a Windows Application Control policy. All tools are run through `python -m`.
+
 ## Unresolved
 
 - Repository scan for committed secrets (SR10): no source control in use yet.

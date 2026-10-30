@@ -1,7 +1,7 @@
 """Application factory. Start it with: uvicorn app.main:create_app --factory"""
 import logging
 
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -14,12 +14,13 @@ logger = logging.getLogger("pillbrook")
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings(env_file=DEFAULT_ENV_FILE)
 
-    # Interactive API docs list every endpoint, so they exist only in development.
+    # Every API address starts with /api, so it can never collide with a screen address in the
+    # React app. The interactive docs list every endpoint, so they exist only in development.
     app = FastAPI(
         title="Pill Brook Facility Maintenance API",
-        docs_url="/docs" if settings.is_development else None,
+        docs_url="/api/docs" if settings.is_development else None,
         redoc_url=None,
-        openapi_url="/openapi.json" if settings.is_development else None,
+        openapi_url="/api/openapi.json" if settings.is_development else None,
     )
     app.state.settings = settings
 
@@ -50,8 +51,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         logger.error("Unhandled error", exc_info=exc)
         return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
-    @app.get("/health", tags=["meta"])
+    api = APIRouter(prefix="/api")
+
+    @api.get("/health", tags=["meta"])
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    app.include_router(api)
     return app

@@ -10,7 +10,7 @@ Documentation: [requirements](docs/requirements-checklist.md) | [decisions](docs
 
 - Python 3.12
 - PostgreSQL 18 (examples use `C:\Program Files\PostgreSQL\18\bin\psql.exe`)
-- Node.js 22 (needed from Step 1.3)
+-Node.js 22 (22.14.0 tested) with npm 11.
 
 ## Project layout
 
@@ -29,6 +29,7 @@ pillbrook-maintenance\
     ├── requirements.in        direct runtime dependencies
     ├── requirements-dev.in    adds test and security tools
     └── requirements.lock.txt  exact installed versions
+    └── frontend\             index.html, package.json, package-lock.json, vite.config.js, and src\.
 ```
 
 ## First-time setup
@@ -76,7 +77,17 @@ pillbrook-maintenance\
 | Dependency audit | `python -m pip_audit` |
 | Code security scan | `python -m bandit -r app alembic` |
 
-In development, API documentation is at http://127.0.0.1:8000/docs (it is hidden in production).
+In development, API documentation is at http://127.0.0.1:8000/api/docs (it is hidden in production).
+
+| Task (from `frontend`) | Command |
+|---|---|
+| Install packages (first time) | `npm ci` |
+| Start the screens | `npm run dev` (open http://127.0.0.1:5173) |
+| Run the frontend tests | `npm test` |
+| Build for production | `npm run build` |
+| Dependency audit | `npm audit` |
+
+Run the backend and the frontend in two separate PowerShell windows. Start the backend first.
 
 ## Security rules
 
@@ -99,3 +110,8 @@ In development, API documentation is at http://127.0.0.1:8000/docs (it is hidden
 | `alembic upgrade` prints no "Running upgrade" | The migration must be inside `alembic\versions\`, and `versions` must be a folder, not a file. |
 | `password authentication failed for user "postgres"` | Wrong superuser password. Reset steps are in `docs/progress-log.md`, Step 1.2. |
 | `Could not connect` from `check_db` | The passwords in `.env` do not match those set in psql. Reset with `\password`. |
+
+| `Failed to resolve import "./App.jsx"` | A source file is missing or misnamed. List `frontend\src` and compare with the file list. |
+| `uvicorn.exe ... Application Control policy has blocked` | Windows blocks the `.exe` launchers. Use `python -m uvicorn ...`. |
+| `http proxy error ... ECONNREFUSED 127.0.0.1:8000` | The backend is not running. Start it in its own window. |
+| A test shows an old folder name or `???` for its source | Stale cache after a rename. Delete `.pytest_cache` and the `__pycache__` folders. |

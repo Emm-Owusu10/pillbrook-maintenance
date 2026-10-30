@@ -25,12 +25,6 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 |---|---|---|
 | D13 | React, FastAPI, PostgreSQL. | Specified in the project document. |
 | D14 | SQLAlchemy 2 with Alembic, psycopg 3, Argon2id, Vite with React Router, Pillow, pytest, pip-audit, bandit. | Parameterised queries, versioned schema, current password hashing, minimal frontend tooling, tested and scanned code. |
-| D15 | One Render web service serves the API and the built React files from one origin, with a secure session cookie. | Avoids cross-site cookie problems. |
-| D16 | Photo storage, email service, and hosting plan: provider to be chosen. | See D22. |
-| D17 | Development on Windows without Docker, using PostgreSQL 18.2 installed directly. | Docker is not installed. Render offers PostgreSQL 18. |
-
-## Implementation (28 to 29 October)
-
 | ID | Decision | Reason |
 |---|---|---|
 | D18 | A small built-in `.env` reader instead of a library. | One fewer dependency. |
@@ -40,6 +34,12 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 | D22 | Two database accounts: an owner for migrations and a limited account for the app. The app refuses the `postgres` superuser and does not keep the owner's URL in memory. Migration 0001 gives the app account read and write access to future tables only. | Least privilege (SR13). |
 | D23 | The database check is a command (`python -m app.check_db`), not a web page. | A public database status page would help attackers. |
 | D24 | Tests run migrations only on databases whose names end in `_test`. | Prevents tests from touching real data. |
+
+| D25 | All API addresses start with `/api` (health check is `/api/health`; docs `/api/docs`, development only). | Screen addresses and API addresses can never collide when the built app is served from one origin. |
+| D26 | Frontend code is JavaScript, not TypeScript. | Chosen by the developer; fewer concepts to learn. TypeScript can be adopted later. |
+| D27 | Frontend packages: react, react-dom, react-router (version 7 needs only this one package); dev tools vite, @vitejs/plugin-react, vitest, jsdom, @testing-library/react, @testing-library/dom. ESLint and jest-dom were left out. | Smallest set that meets the approved stack; fewer packages means a smaller supply-chain surface. ESLint can be reconsidered in Phase 5. |
+| D28 | In development the browser talks only to the Vite server on 127.0.0.1:5173, which forwards `/api` to the backend on port 8000. The dev server is not reachable from other computers. | One origin, so CORS stays unused (D15); nothing exposed on the network. |
+| D29 | Tools are always started with `python -m` (for example `python -m uvicorn`). | Windows Application Control blocks the `.exe` launchers in the virtual environment. |
 
 ## Render free tier (checked 27 to 28 October; re-check before deployment)
 

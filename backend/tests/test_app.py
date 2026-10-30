@@ -3,9 +3,13 @@ from pydantic import BaseModel, Field
 
 
 def test_health_returns_ok_and_nothing_else(client):
-    response = client.get("/health")
+    response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_health_exists_only_under_the_api_prefix(client):
+    assert client.get("/health").status_code == 404
 
 
 def test_unknown_route_returns_json_404(client):
@@ -49,28 +53,28 @@ def test_validation_errors_do_not_echo_submitted_values(make_app):
 
 def test_api_docs_are_available_in_development(make_app):
     client = TestClient(make_app(environment="development"))
-    assert client.get("/docs").status_code == 200
+    assert client.get("/api/docs").status_code == 200
 
 
 def test_api_docs_are_hidden_in_production(make_app):
     client = TestClient(make_app(environment="production"))
-    assert client.get("/docs").status_code == 404
-    assert client.get("/openapi.json").status_code == 404
+    assert client.get("/api/docs").status_code == 404
+    assert client.get("/api/openapi.json").status_code == 404
 
 
 def test_cors_allows_a_configured_origin(make_app):
     origin = "http://localhost:5173"
     client = TestClient(make_app(cors_origins=(origin,)))
-    response = client.get("/health", headers={"Origin": origin})
+    response = client.get("/api/health", headers={"Origin": origin})
     assert response.headers.get("access-control-allow-origin") == origin
 
 
 def test_cors_refuses_an_unlisted_origin(make_app):
     client = TestClient(make_app(cors_origins=("http://localhost:5173",)))
-    response = client.get("/health", headers={"Origin": "http://evil.example"})
+    response = client.get("/api/health", headers={"Origin": "http://evil.example"})
     assert "access-control-allow-origin" not in response.headers
 
 
 def test_no_cors_headers_when_no_origin_is_configured(client):
-    response = client.get("/health", headers={"Origin": "http://localhost:5173"})
+    response = client.get("/api/health", headers={"Origin": "http://localhost:5173"})
     assert "access-control-allow-origin" not in response.headers
