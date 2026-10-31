@@ -1,0 +1,2 @@
+# The password list's fingerprint is recorded in its README, so Git must never change its line endings.
+backend/app/data/common_passwords.txt -text
