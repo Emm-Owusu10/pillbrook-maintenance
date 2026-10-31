@@ -88,6 +88,37 @@ vite 8.3.5, @vitejs/plugin-react 6.1.2, vitest 5.0.5, jsdom 29.1.1, @testing-lib
   `.pytest_cache` and `__pycache__` removed the stale path.
 - `uvicorn.exe` is blocked by a Windows Application Control policy. All tools are run through `python -m`.
 
+## Step 2.1: Users table, password handling, first Administrator (31 October)
+
+**Built:** `users` table (migration 0002) with rules enforced by the database; `User` model; Argon2id
+hashing at the OWASP minimum (19 MiB, 2 rounds, 1 lane); password rules (15 to 128 characters, NFKC
+normalisation, no name, email name or "pillbrook", not on the common-password list); common-password
+list (SecLists NCSC top 100,000, 99,840 lines, MIT licence); email checker; `create_admin` command;
+`measure_hashing` timer.
+
+**Files:** `app/models.py`, `app/passwords.py`, `app/emails.py`, `app/create_admin.py`,
+`app/measure_hashing.py`, `app/data/common_passwords.txt`, `app/data/README.md`,
+`alembic/versions/0002_users.py`; `alembic/env.py` (one line added); tests `test_passwords.py`,
+`test_emails.py`, `test_users_table.py`, `test_create_admin.py`; `conftest.py` (replaced) and
+`test_database.py` (one test updated); `requirements.in`, `requirements.lock.txt`.
+
+**Installed:** argon2-cffi 25.1.0, email-validator 2.3.0 (with dnspython 2.9.1, cffi 2.1.1, pycparser 3.12).
+
+**Results:**
+- 92 tests passed (27 configuration, 10 application, 7 database, 21 password, 11 email, 7 users-table,
+  9 first-Administrator).
+- Migration 0002 applied to the development database; `alembic current` shows `0002 (head)`.
+- Hashing takes about 40 ms and checking about 40 ms on the development computer.
+- `pip-audit`: no known vulnerabilities. `bandit`: 0 issues.
+- The first Administrator was created with `python -m app.create_admin`.
+- Stored row checked: role `admin`, verified, hash begins `$argon2id$v=19$m=19456,t=2,p=1$`.
+- A second run of `create_admin` refused with "An Administrator already exists."
+
+**Problems and fixes:**
+- The first test run failed with `cannot import name 'passwords'` because the new files were not yet in
+  `backend\app`. Creating them fixed it.
+- `create_admin.py` was missing on its first run: `No module named app.create_admin`.
+
 ## Unresolved
 
 - Repository scan for committed secrets (SR10): no source control in use yet.

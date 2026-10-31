@@ -7,6 +7,8 @@ from sqlalchemy import create_engine, pool
 from app.config import DEFAULT_ENV_FILE, load_migration_settings
 from app.database import Base
 
+from app import models  # noqa: F401  (registers the tables)
+
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name, disable_existing_loggers=False)

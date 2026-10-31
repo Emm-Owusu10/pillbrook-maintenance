@@ -23,7 +23,7 @@ pillbrook-maintenance\
     ├── .env.example           settings template (copy to .env)
     ├── alembic.ini            migration tool settings
     ├── alembic\               database migrations (versions\ must be a folder)
-    ├── app\                   the application (config, database, API)
+    ├── app\                      ├── app\                   the application (config, database, passwords, API); app\data\ holds the common-password list
     ├── tests\                 automated tests
     ├── pytest.ini
     ├── requirements.in        direct runtime dependencies
@@ -62,7 +62,9 @@ pillbrook-maintenance\
    Generate each secret with `python -c "import secrets; print(secrets.token_urlsafe(48))"`
    (use `24` instead of `48` for database passwords).
 4. Create the database structure: `python -m alembic upgrade head`
-5. Check everything: `python -m pytest -q` and `python -m app.check_db`.
+5. Download the common-password list. The address and fingerprint are in `backend/app/data/README.md`.
+6. Check everything: `python -m pytest -q` and `python -m app.check_db`
+7. Create the first Administrator, once: `python -m app.create_admin`
 
 ## Everyday commands (from `backend`, with the virtual environment active)
 
@@ -86,6 +88,8 @@ In development, API documentation is at http://127.0.0.1:8000/api/docs (it is hi
 | Run the frontend tests | `npm test` |
 | Build for production | `npm run build` |
 | Dependency audit | `npm audit` |
+| Create the first Administrator (once) | `python -m app.create_admin` |
+| Measure password hashing speed | `python -m app.measure_hashing` |
 
 Run the backend and the frontend in two separate PowerShell windows. Start the backend first.
 
@@ -115,3 +119,4 @@ Run the backend and the frontend in two separate PowerShell windows. Start the b
 | `uvicorn.exe ... Application Control policy has blocked` | Windows blocks the `.exe` launchers. Use `python -m uvicorn ...`. |
 | `http proxy error ... ECONNREFUSED 127.0.0.1:8000` | The backend is not running. Start it in its own window. |
 | A test shows an old folder name or `???` for its source | Stale cache after a rename. Delete `.pytest_cache` and the `__pycache__` folders. |
+| `The common-password list is missing` | `backend\app\data\common_passwords.txt` is not there. Download it again (see `app/data/README.md`). |

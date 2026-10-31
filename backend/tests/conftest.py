@@ -7,6 +7,7 @@ from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
+from app import passwords
 from app.config import DEFAULT_ENV_FILE, Settings, merged_environment
 from app.main import create_app
 
@@ -27,6 +28,17 @@ def make_app():
 @pytest.fixture()
 def client(make_app):
     return TestClient(make_app(), raise_server_exceptions=False)
+
+
+@pytest.fixture()
+def small_list(tmp_path, monkeypatch):
+    """A tiny common-password list, so the password tests do not depend on the downloaded file."""
+    path = tmp_path / "common.txt"
+    path.write_text("password\niloveyou\nQwerty123456789\nabc\n\n  spaced  \n", encoding="utf-8")
+    monkeypatch.setattr(passwords, "BLOCKLIST_FILE", path)
+    passwords._common_passwords.cache_clear()
+    yield
+    passwords._common_passwords.cache_clear()
 
 
 # ---- Database fixtures (need PostgreSQL and the *_test database from the README) ----

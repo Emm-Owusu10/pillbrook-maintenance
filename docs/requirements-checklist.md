@@ -47,19 +47,19 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | NFR4 | Availability target (paid, always-on deployment only) | Phase 6 | Not started |
 | NFR5 | 100 users, at least 50 concurrent, 5,000 requests with photos | Phase 5 | Not started |
 | NFR6 | Separate layers, migrations, a test for every requirement | Every step | In progress: layers, migrations and tests exist (44 backend, 15 frontend) |
-| NFR7 | Database enforces keys, allowed values, two-photo limit | With each table | Foundation only: naming convention in place |
+| NFR7 | Database enforces keys, allowed values, two-photo limit | With each table | Partly verified: the users table refuses duplicate emails, unknown roles and uppercase emails |
 | NFR8 | Configuration from environment; backup and export procedure | Phase 5, 6 | Partly: environment configuration and migrations verified; backup procedure pending |
 
 ## Security requirements (ASVS 5.0; target level to be confirmed)
 
 | ID | Requirement (short) | Planned step | Status | Evidence |
 |---|---|---|---|---|
-| SR1 | Argon2id password hashing, never logged | 2.1 | Not started | |
-| SR2 | Password policy per NIST SP 800-63B-4 | 2.1 | Not started | |
+| SR1 | Argon2id password hashing, never logged | 2.1 | Verified for storage; login in 2.2 | Hash uses argon2id with the agreed settings, a salt per hash, and never contains the password; no message repeats it |
+| SR2 | Password policy per NIST SP 800-63B-4 | 2.1 | **Verified** | 13 rule tests; list of 99,840 common passwords; lengths 15 to 128, NFKC |
 | SR3 | Login throttling; same message for unknown email and wrong password | 2.2 | Not started | |
 | SR4 | Secure session cookie, CSRF protection | 1.3, 2.2 | Groundwork done | One origin in development (proxy); the API helper sends same-origin credentials and has a place for the CSRF header. Cookie and CSRF arrive in Step 2.2. |
 | SR5 | Role and ownership checks; deny by default | 2.3 onward | Not started | |
-| SR6 | Validation, parameterised queries, safe output | 2.1 onward | Foundation | SQLAlchemy in place; React escapes text and no raw HTML is inserted; first database use in Step 2.1 |
+| SR6 | Validation, parameterised queries, safe output | 2.1 onward | Partly verified | SQLAlchemy used for all database access so far; email format check; React escapes text |
 | SR7 | Photo upload checks and private storage | 3.2 | Not started | |
 | SR8 | Access code, verified email, rate limits on registration and reset | 2.5, 2.6 | Not started | |
 | SR9 | Single-use, time-limited, hashed tokens | 2.5, 2.6 | Not started | |
