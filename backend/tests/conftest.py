@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
@@ -10,8 +11,10 @@ from sqlalchemy import create_engine, text
 from app import passwords
 from app.config import DEFAULT_ENV_FILE, Settings, merged_environment
 from app.main import create_app
+from app.passwords import hash_password
 
 TEST_KEY = "k" * 40  # test-only value
+LOGIN_PASSWORD = "correct horse battery staple"  # the password given to test users
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -89,3 +92,50 @@ def migrated(alembic_config, owner_engine):
     yield
     _drop_probe_table(owner_engine)
     command.downgrade(alembic_config, "base")
+
+
+@pytest.fixture()
+def add_user(migrated, app_engine):
+    """Insert a user. Returns the new user's id."""
+
+    def _add(email="ama@farm-mail.org", name="Ama Mensah", role="user", password=LOGIN_PASSWORD,
+             verified=True, active=True):
+        with app_engine.begin() as connection:
+            return connection.execute(
+                text(
+                    "INSERT INTO users (name, email, password_hash, role, email_verified_at, is_active) "
+                    "VALUES (:name, :email, :hash, :role, :verified_at, :active) RETURNING user_id"
+                ),
+                {
+                    "name": name,
+                    "email": email,
+                    "hash": hash_password(password),
+                    "role": role,
+                    "verified_at": datetime.now(timezone.utc) if verified else None,
+                    "active": active,
+                },
+            ).scalar_one()
+
+    return _add
+
+
+@pytest.fixture()
+def make_db_app(migrated):
+    """Build an application connected to the test database (as the limited application account)."""
+    created = []
+
+    def _make(**overrides):
+        values = {
+            "environment": "development",
+            "secret_key": TEST_KEY,
+            "cors_origins": (),
+            "database_url": _test_database_url("TEST_DATABASE_URL"),
+        }
+        values.update(overrides)
+        app = create_app(Settings(**values))
+        created.append(app)
+        return app
+
+    yield _make
+    for app in created:  # close connections before the migration is undone
+        app.state.engine.dispose()

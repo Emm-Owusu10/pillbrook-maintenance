@@ -14,10 +14,10 @@ def _role_flags(engine):
 
 
 def test_the_migrations_are_registered_in_order(alembic_config):
-       # Fails at once if Alembic cannot see a migration file.
-       script = ScriptDirectory.from_config(alembic_config)
-       assert script.get_current_head() == "0002"
-       assert [revision.revision for revision in script.walk_revisions()] == ["0002", "0001"]
+    # Fails at once if Alembic cannot see a migration file.
+    script = ScriptDirectory.from_config(alembic_config)
+    assert script.get_current_head() == "0003"
+    assert [revision.revision for revision in script.walk_revisions()] == ["0003", "0002", "0001"]
 
 
 def test_app_account_has_no_administrative_powers(app_engine):

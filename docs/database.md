@@ -20,6 +20,7 @@
 | Revision | What it does |
 |---|---|
 | `0001` | Removes the right to create objects in the `public` schema from everyone, lets the app account use the schema, and grants the app account SELECT, INSERT, UPDATE, DELETE on all tables the owner creates later. Downgrade reverses this. |
+| `0003` | Creates `sessions` (fingerprint of the session code, last activity, absolute expiry; removed with its user) and `audit_log` (time, event type, who, target, detail, address). Removes UPDATE and DELETE on `audit_log` from the application account so entries can only be added and read. |
 
 ## Rules
 
@@ -34,7 +35,8 @@
 | Table | Step | Purpose |
 |---|---|---|
 | `users` | Done (Step 2.1) | Accounts, role, password hash, verification time |
-| `audit_log` | 2.2 | Security events |
+| `audit_log` | 2.2 | Security events | Done | Step 2.2a |
+| `sessions` | Done (Step 2.2a) | Signed-in browsers |.
 | `farm_settings` | 2.5 | Farm access code, stored encrypted |
 | `auth_tokens` | 2.5 | Hashed verification and reset tokens |
 | `maintenance_requests` | 3.1 | Reported faults and their status |
@@ -42,3 +44,4 @@
 | `request_edits` | 3.3 | Edits made in the 15-minute window |
 | `notifications` | 3.4 | In-app notifications |
 | `maintenance_records` | 3.6 | Actions recorded by the Facility Manager |
+

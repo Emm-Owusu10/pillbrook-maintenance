@@ -1,7 +1,10 @@
-"""Database foundation: the shared model base class and a function that builds an engine."""
+"""Database foundation: the shared model base class, an engine builder, and the request dependency."""
+from collections.abc import Iterator
+
+from fastapi import Request
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Session
 
 # Predictable constraint names make later migrations clean and reviewable.
 NAMING_CONVENTION = {
@@ -20,3 +23,12 @@ class Base(DeclarativeBase):
 def make_engine(database_url: str) -> Engine:
     # pool_pre_ping tests a connection before use, so a restarted database does not cause errors.
     return create_engine(database_url, pool_pre_ping=True)
+
+
+def get_db(request: Request) -> Iterator[Session]:
+    """One database session per request, closed afterwards."""
+    factory = request.app.state.session_factory
+    if factory is None:
+        raise RuntimeError("No database is configured for this application.")
+    with factory() as session:
+        yield session

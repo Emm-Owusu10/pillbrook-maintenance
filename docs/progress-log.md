@@ -24,8 +24,9 @@ handling; restricted CORS; hidden API docs in production; `/health`; test setup;
 - Start without `.env`: stopped with `ConfigError: SECRET_KEY is not set`, no server running.
 
 **Problems and fixes:**
-- Nine tests errored with `fixture 'client' not found`. `conftest.py` was missing or misplaced.
-  The cause was not recorded.
+- Nine tests errored with `fixture 'client' not found`: pytest was not loading `conftest.py`. The error
+  paths showed a `test` folder although the project uses `tests`. Resolved on 28 October by renaming the
+  folder to `tests` and making sure `conftest.py` sat inside it; all 25 tests then passed.
 - A test-client warning led to replacing `httpx` with `httpx2` (D21).
 
 ## Step 1.2: Database foundation (29 October)
@@ -118,6 +119,32 @@ list (SecLists NCSC top 100,000, 99,840 lines, MIT licence); email checker; `cre
 - The first test run failed with `cannot import name 'passwords'` because the new files were not yet in
   `backend\app`. Creating them fixed it.
 - `create_admin.py` was missing on its first run: `No module named app.create_admin`.
+
+## Step 2.2a: Login, sessions, throttling and audit log: the API (1 November)
+
+**Built:** login, logout and "who am I" endpoints under /api/auth; sessions kept in the database (a
+random 256-bit code in a protected cookie, only its SHA-256 fingerprint stored); idle expiry (60 minutes)
+and absolute expiry (12 hours); lock after 4 wrong attempts within 10 minutes for 10 minutes; one
+identical answer for every kind of failed login; CSRF token derived from the session code and
+SECRET_KEY; an audit log the application account can add to and read but not change or delete;
+automatic upgrade of old password hashes at login; migration 0003 (sessions, audit_log).
+
+**Files:** `app/tokens.py`, `app/throttle.py`, `app/schemas.py`, `app/audit.py`, `app/sessions.py`,
+`app/auth.py`, `alembic/versions/0003_sessions_and_audit_log.py`; `app/models.py`, `app/database.py`,
+`app/main.py` and `app/config.py` (changed); tests `test_tokens.py`, `test_throttle.py`,
+`test_auth_tables.py`, `test_auth_api.py`; `conftest.py` (replaced); `test_database.py` (one test updated).
+No new packages.
+
+**Results:**
+- 140 tests passed (92 earlier, plus 7 token, 6 throttle, 6 table, 29 API).
+- Migration 0003 applied; `alembic current` shows `0003 (head)`.
+- Live check from PowerShell: login 200 (user and role admin, no password or hash), me 200, logout 204,
+  me 401 "Not signed in."
+- `/docs` moved to `/api/docs` earlier (D25); the old address returns 404.
+- `pip-audit`: no known vulnerabilities. `bandit`: 0 issues in 877 lines.
+- Password list: Git reports `i/lf w/lf attr/-text`; `.gitattributes` keeps its line endings unchanged.
+
+**Problems and fixes:** none in this step.
 
 ## Unresolved
 

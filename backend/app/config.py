@@ -37,6 +37,16 @@ class Settings:
     def is_development(self) -> bool:
         return self.environment == "development"
 
+    @property
+    def cookie_secure(self) -> bool:
+        # The browser refuses Secure cookies on plain http, so this is off in development only.
+        return not self.is_development
+
+    @property
+    def session_cookie_name(self) -> str:
+        # The __Host- prefix makes browsers insist on Secure, path "/" and no Domain attribute.
+        return "session" if self.is_development else "__Host-session"
+
 
 def _read_env_file(path: Path) -> dict[str, str]:
     """Read simple KEY=VALUE lines. Blank lines and lines starting with # are ignored."""
