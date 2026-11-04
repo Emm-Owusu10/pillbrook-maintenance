@@ -53,6 +53,12 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 | D40 | The CSRF token is derived from the session code and SECRET_KEY, so nothing extra is stored. Changing SECRET_KEY invalidates every token; the screens fetch a new one from `/api/auth/me`. | Simple, and it gives SECRET_KEY a real job. |
 | D41 | Every failed login returns the same message and status, and a placeholder password is checked when the email is unknown so timing is similar. Text typed in the email box is stored only when it is a valid email address. | Prevents discovering which accounts exist; people sometimes type a password into the email box. |
 | D42 | The audit log (table `audit_log`) records login success, failure, lock, logout and session expiry. The application account may add and read entries but not change or delete them; removing old entries (retention) must be done with the owner account. An `ip_address` column exists but stays empty until Render's proxy handling is understood (Step 6). | A tamper-resistant record: someone who steals the application account cannot rewrite history. |
+| D43 | The sign-in state and the CSRF token live in memory only. Nothing is written to local or session storage; a reload asks the server who is signed in. | A script on the page cannot find a stored secret, and the server stays the only authority. |
+| D44 | After sign-in the app goes to the page the visitor asked for, otherwise the home page. Only a path starting with a single `/` is accepted. | A crafted sign-in link can never send someone to another website. |
+| D45 | The sign-in form has a "Show password" box, autocomplete hints for password managers, 44 px controls, and empties and hides the password after a failed attempt. | Typing a 15-character password on a phone causes mistakes, and mistakes count toward the lock. |
+| D46 | The System status page stays open to signed-out visitors. | It shows only whether the server is up and helps staff tell a connection problem from a server problem. A detailed Administrator-only page may follow in Phase 5. |
+| D47 | Signing out on purpose returns to the public home page; a session that ends by itself returns to the sign-in page with "Your session has ended." | Each case needs a different next step. |
+| D48 | If signing out fails because the connection is lost, the person stays signed in and is told so. | Otherwise they could believe they had signed out while the server still held their session. |
 
 ## Render free tier (checked 27 to 28 October; re-check before deployment)
 
@@ -77,3 +83,5 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 | Limits per computer address on login and registration; trusted proxy setting for the real visitor address | Phase 5 and Step 6 |
 | Audit log retention period and how old entries are removed (owner account) | Phase 5 |
 | Chapter Three changes: Sessions entity in the supporting ERD; FR4 limits (4 in 10 minutes, 10-minute lock); FR6 limits (60 minutes idle, 12 hours absolute); audit log columns and its append-only rule | Before the chapter is submitted |
+| Chapter Three changes: login and sign-out behaviour, the "My account" page, the sign-in screen's show-password box | Before the chapter is submitted |
+| Keep a private copy of `backend/.env` (for example in a password manager). It is not in Git, so a damaged file cannot be restored from the repository | Now |

@@ -10,9 +10,9 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | FR1 | Register with name, email, password, farm access code | 2.5 | Not started |
 | FR2 | Email verification link before login | 2.5 | Not started |
 | FR3 | New accounts get the Farm User role | 2.5 | Not started |
-| FR4 | Login by email and password; limit failed attempts | 2.2 | API verified; screens in 2.2b | 29 API tests; live check from PowerShell |
+| FR4 | Login by email and password; limit failed attempts | 2.2 | **Verified** | API tests, screen tests and browser checks; lock after 4 failures in 10 minutes |
 | FR5 | Restrict every function by role | 2.3 | Not started |
-| FR6 | Logout and idle session expiry | 2.2 | API verified; screens in 2.2b | Idle expiry (60 min) and absolute expiry (12 h) tested; logout needs the CSRF token |
+| FR6 | Logout and idle session expiry | 2.2 | **Verified** | Sign-out tested in the API, the screens and the browser; idle (60 min) and absolute (12 h) expiry tested in the API; a notice is shown when a session ends |
 | FR7 | Password reset by emailed link | 2.6 | Not started |
 | FR8 | Administrator-assisted password reset | 2.6 | Not started |
 | FR9 | Administrator manages users and roles | 2.7 | Not started |
@@ -41,7 +41,7 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 
 | ID | Requirement (short) | Planned step | Status |
 |---|---|---|---|
-| NFR1 | Usability: first report in under X minutes on a phone | Phase 5 | Groundwork: mobile-first layout, 44 px tap targets, visible focus outlines |
+| NFR1 | Usability: first report in under X minutes on a phone | Phase 5 | Groundwork: mobile-first layout, 44 px controls, show-password box, password-manager hints, visible focus outlines |
 | NFR2 | Pages respond within 3 s for at least 50 concurrent users | Phase 5 | Not started |
 | NFR3 | Saved data survives restart; failed notification does not lose a request | 3.4, Phase 5 | Not started |
 | NFR4 | Availability target (paid, always-on deployment only) | Phase 6 | Not started |
@@ -57,7 +57,7 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | SR1 | Argon2id password hashing, never logged | 2.1 | **Verified** | Hashes upgrade automatically at login; passwords never appear in responses, errors or the audit log |
 | SR2 | Password policy per NIST SP 800-63B-4 | 2.1 | **Verified** | 13 rule tests; list of 99,840 common passwords; lengths 15 to 128, NFKC |
 | SR3 | Login throttling; same message for unknown email and wrong password | 2.2 | **Verified (API)** | Same answer for every failure; lock after 4 failures; unknown emails counted the same way |
-| SR4 | Secure session cookie, CSRF protection | 1.3, 2.2 | **Verified (API)**; the screens send the CSRF header in 2.2b | Cookie flags tested in development and production; logout refused without the matching token |
+| SR4 | Secure session cookie, CSRF protection | 1.3, 2.2 | **Verified** | Cookie flags tested in development and production; the screens send the CSRF header on every change; storage checked empty in the browser |
 | SR5 | Role and ownership checks; deny by default | 2.3 onward | Groundwork | `get_auth` and `get_auth_with_csrf` in place; role checks arrive in 2.3 |
 | SR6 | Validation, parameterised queries, safe output | 2.1 onward | Partly verified | SQLAlchemy used for all database access so far; email format check; React escapes text |
 | SR7 | Photo upload checks and private storage | 3.2 | Not started | |

@@ -10,6 +10,23 @@ export class ApiError extends Error {
   }
 }
 
+// Kept in memory only, never in browser storage, so a script cannot find it lying around.
+let csrfToken = null;
+let sessionEndedHandler = null;
+
+export function setCsrfToken(token) {
+  csrfToken = token;
+}
+
+// Called when a request is refused because the session has ended.
+export function setSessionEndedHandler(handler) {
+  sessionEndedHandler = handler;
+}
+
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+// A refusal from these addresses is normal (not signed in, wrong password), not an ended session.
+const SIGN_IN_PATHS = new Set(["/api/auth/login", "/api/auth/me", "/api/auth/logout"]);
+
 function toProblems(detail) {
   if (Array.isArray(detail)) {
     return detail
@@ -31,7 +48,10 @@ export async function apiFetch(path, { method = "GET", body, signal } = {}) {
     headers["Content-Type"] = "application/json";
     options.body = JSON.stringify(body);
   }
-  // Step 2.2 adds the CSRF header here for POST, PATCH and DELETE requests.
+  // Every request that changes data carries the secret handshake word from sign-in.
+  if (csrfToken && !SAFE_METHODS.has(method.toUpperCase())) {
+    headers["X-CSRF-Token"] = csrfToken;
+  }
 
   const response = await fetch(path, options);
 
@@ -43,6 +63,9 @@ export async function apiFetch(path, { method = "GET", body, signal } = {}) {
   }
 
   if (!response.ok) {
+    if (response.status === 401 && !SIGN_IN_PATHS.has(path) && sessionEndedHandler) {
+      sessionEndedHandler();
+    }
     throw new ApiError(response.status, toProblems(data?.detail));
   }
   return data;

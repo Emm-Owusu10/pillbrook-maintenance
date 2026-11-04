@@ -1,6 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiFetch } from "./api.js";
+import { ApiError, apiFetch, setCsrfToken, setSessionEndedHandler } from "./api.js";
+
+afterEach(() => {
+  setCsrfToken(null);
+  setSessionEndedHandler(null);
+});
 
 function answer(status, body) {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -87,5 +92,51 @@ describe("apiFetch", () => {
     );
     expect(error.message).not.toContain("hunter-two");
     expect(JSON.stringify(error.problems)).not.toContain("hunter-two");
+  });
+});
+
+describe("apiFetch and the CSRF token", () => {
+  it("adds the token to every request that changes data", async () => {
+    const fetchMock = answer(200, {});
+    setCsrfToken("token-123");
+    await apiFetch("/api/things", { method: "POST", body: {} });
+    await apiFetch("/api/things/1", { method: "PATCH", body: {} });
+    await apiFetch("/api/things/1", { method: "DELETE" });
+    for (const [, options] of fetchMock.mock.calls) {
+      expect(options.headers["X-CSRF-Token"]).toBe("token-123");
+    }
+  });
+
+  it("never adds the token to reads", async () => {
+    const fetchMock = answer(200, {});
+    setCsrfToken("token-123");
+    await apiFetch("/api/things");
+    expect(fetchMock.mock.calls[0][1].headers["X-CSRF-Token"]).toBeUndefined();
+  });
+
+  it("sends no token header when there is no token", async () => {
+    const fetchMock = answer(200, {});
+    await apiFetch("/api/things", { method: "POST", body: {} });
+    expect(fetchMock.mock.calls[0][1].headers["X-CSRF-Token"]).toBeUndefined();
+  });
+});
+
+describe("apiFetch and ended sessions", () => {
+  it("tells the app when a request is refused because the session has ended", async () => {
+    answer(401, { detail: "Not signed in." });
+    const handler = vi.fn();
+    setSessionEndedHandler(handler);
+    await expect(apiFetch("/api/things")).rejects.toBeInstanceOf(ApiError);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not treat a refusal at sign-in as an ended session", async () => {
+    answer(401, { detail: "Incorrect email or password." });
+    const handler = vi.fn();
+    setSessionEndedHandler(handler);
+    for (const path of ["/api/auth/login", "/api/auth/me", "/api/auth/logout"]) {
+      await apiFetch(path).catch(() => {});
+    }
+    expect(handler).not.toHaveBeenCalled();
   });
 });

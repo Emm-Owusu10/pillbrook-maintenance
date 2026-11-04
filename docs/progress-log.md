@@ -143,6 +143,35 @@ No new packages.
 - `/docs` moved to `/api/docs` earlier (D25); the old address returns 404.
 - `pip-audit`: no known vulnerabilities. `bandit`: 0 issues in 877 lines.
 - Password list: Git reports `i/lf w/lf attr/-text`; `.gitattributes` keeps its line endings unchanged.
+## Step 2.2b: Login screens (2 November)
+
+**Built:** sign-in state for the whole app, kept in memory only; login page with labelled fields, a
+"Show password" box, clear messages and a button that disables while sending; header with name, role and
+Sign out; "My account" page; protected pages that send a signed-out visitor to the sign-in page and bring
+them back; the CSRF token sent automatically on every change; a notice when a session ends by itself;
+a retry screen when the server cannot be reached; the home page greets a signed-in user.
+
+**Files:** `frontend/src/auth.jsx`, `SessionGate.jsx`, `RequireAuth.jsx`, `roles.js`,
+`pages/Login.jsx`, `pages/Account.jsx`, `test/mockApi.js`; changed `api.js`, `App.jsx`, `main.jsx`,
+`pages/Home.jsx`, `styles.css`; tests `auth.test.jsx`, `pages/Login.test.jsx`, `roles.test.js`,
+`api.test.js` and `App.test.jsx` (replaced). No new packages; the backend did not change.
+
+**Results:**
+- Frontend: 47 tests passed in 6 files (14 API helper, 9 sign-in state, 11 sign-in page, 9 App,
+  1 roles, 3 status page). Backend: 140 passed.
+- `npm run build`: 31 modules, 267 kB (85 kB compressed). `npm audit`: 0 vulnerabilities.
+- Checked in the browser: the sign-in redirect and return, sign-in, staying signed in after a reload,
+  empty browser storage and an HttpOnly session cookie, sign-out to the home page, the wrong-password
+  message, and the public status page.
+
+**Problems and fixes:**
+- A test showed that signing out from a protected page landed on the sign-in page, and the next person to
+  sign in would have been taken back to the previous page. Fixed by recording that the person signed out
+  on purpose (`signedOutOnPurpose`), so protected pages send them home.
+- One of my edit instructions put a new check into the wrong test, so one test failed although the app was
+  correct. The whole test file was replaced.
+- `backend/.env` was found with a malformed line 21 (`.env line 21 is not in KEY=VALUE form`), so the
+  backend refused to start. The configuration check worked as designed. Fixed by correcting the file.
 
 **Problems and fixes:** none in this step.
 
