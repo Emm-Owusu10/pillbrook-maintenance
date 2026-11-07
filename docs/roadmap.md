@@ -10,7 +10,7 @@ the API, then the screens, each confirmed separately. Nothing is cut or reordere
 | 1.3 | React skeleton and API connection | Done |
 | 2.1 | Users table, Argon2id hashing, password policy, first Administrator | SR1, SR2 | Done |
 | 2.2 | Login, sessions, logout, idle expiry, throttling, audit log | FR4, FR6, FR29, SR3, SR4 | Done |
-| 2.3 | Role-based access control | FR5, SR5 |
+| 2.3 | Role-based access control | FR5, SR5 | Done |
 | 2.4 | Email sending (log mode in development; provider interface) | Supports FR2, FR7 |
 | 2.5 | Farm access code, registration, email verification | FR1, FR2, FR3, SR8, SR9 |
 | 2.6 | Password reset and administrator-assisted reset | FR7, FR8 |

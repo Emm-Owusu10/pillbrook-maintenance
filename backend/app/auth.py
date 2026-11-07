@@ -1,5 +1,4 @@
 """Login, logout and the signed-in user (requirements FR4, FR6, SR3, SR4)."""
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import lru_cache
 
@@ -8,26 +7,20 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import audit, sessions
+from .access import CSRF_HEADER, CSRF_MESSAGE, Auth, require_signed_in
 from .database import get_db
 from .emails import normalise_email
-from .models import User, UserSession
+from .models import User
 from .passwords import hash_password, needs_rehash, verify_password
+from .permissions import permissions_for
 from .schemas import AuthOut, LoginIn, UserOut
 from .throttle import LOCK_DURATION, is_locked, reaches_limit
 from .tokens import csrf_matches, csrf_token_for
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-CSRF_HEADER = "X-CSRF-Token"
 GENERIC_FAILURE = "Incorrect email or password."
 LOCKED_MESSAGE = f"Too many failed attempts. Try again in {int(LOCK_DURATION.total_seconds() // 60)} minutes."
-
-
-@dataclass
-class Auth:
-    user: User
-    session: UserSession
-    raw_token: str  # the session code from the cookie; used only to derive the CSRF token
 
 
 @lru_cache(maxsize=1)
@@ -36,22 +29,13 @@ def _dummy_hash() -> str:
     return hash_password("a placeholder used only to spend the same time as a real check")
 
 
-def get_auth(request: Request, db: Session = Depends(get_db)) -> Auth:
-    """For endpoints that only read: the caller must hold a live session."""
-    raw = request.cookies.get(request.app.state.settings.session_cookie_name)
-    found = sessions.find_valid(db, raw) if raw else None
-    if found is None:
-        raise HTTPException(status_code=401, detail="Not signed in.")
-    session, user = found
-    return Auth(user=user, session=session, raw_token=raw)
-
-
-def get_auth_with_csrf(request: Request, auth: Auth = Depends(get_auth)) -> Auth:
-    """For endpoints that change something: a live session AND the matching CSRF token."""
-    supplied = request.headers.get(CSRF_HEADER)
-    if not csrf_matches(request.app.state.settings.secret_key, auth.raw_token, supplied):
-        raise HTTPException(status_code=403, detail="The request could not be verified. Reload the page and try again.")
-    return auth
+def _auth_reply(settings, user: User, raw_token: str) -> AuthOut:
+    """Who the person is, what their role allows, and the handshake word for this session."""
+    return AuthOut(
+        user=UserOut.model_validate(user),
+        permissions=sorted(permission.value for permission in permissions_for(user.role)),
+        csrf_token=csrf_token_for(settings.secret_key, raw_token),
+    )
 
 
 def _set_session_cookie(response: Response, settings, raw: str) -> None:
@@ -119,16 +103,12 @@ def login(body: LoginIn, request: Request, response: Response, db: Session = Dep
     db.commit()
 
     _set_session_cookie(response, settings, raw)
-    return AuthOut(user=UserOut.model_validate(user), csrf_token=csrf_token_for(settings.secret_key, raw))
+    return _auth_reply(settings, user, raw)
 
 
 @router.get("/me", response_model=AuthOut)
-def me(request: Request, auth: Auth = Depends(get_auth)):
-    settings = request.app.state.settings
-    return AuthOut(
-        user=UserOut.model_validate(auth.user),
-        csrf_token=csrf_token_for(settings.secret_key, auth.raw_token),
-    )
+def me(request: Request, auth: Auth = Depends(require_signed_in)):
+    return _auth_reply(request.app.state.settings, auth.user, auth.raw_token)
 
 
 @router.post("/logout", status_code=204)
@@ -139,9 +119,7 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     if found is not None:
         _session, user = found
         if not csrf_matches(settings.secret_key, raw, request.headers.get(CSRF_HEADER)):
-            raise HTTPException(
-                status_code=403, detail="The request could not be verified. Reload the page and try again."
-            )
+            raise HTTPException(status_code=403, detail=CSRF_MESSAGE)
         sessions.end_session(db, raw)
         audit.record(db, audit.LOGOUT, actor_id=user.user_id, target=user.email)
         db.commit()

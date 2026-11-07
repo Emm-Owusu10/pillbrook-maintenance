@@ -11,7 +11,7 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | FR2 | Email verification link before login | 2.5 | Not started |
 | FR3 | New accounts get the Farm User role | 2.5 | Not started |
 | FR4 | Login by email and password; limit failed attempts | 2.2 | **Verified** | API tests, screen tests and browser checks; lock after 4 failures in 10 minutes |
-| FR5 | Restrict every function by role | 2.3 | Not started |
+| FR5 | Restrict every function by role | 2.3, then each step | **Mechanism verified** | Table 3.3 as code; 11 role-by-role tests; screens follow. Each function is checked as it is built |
 | FR6 | Logout and idle session expiry | 2.2 | **Verified** | Sign-out tested in the API, the screens and the browser; idle (60 min) and absolute (12 h) expiry tested in the API; a notice is shown when a session ends |
 | FR7 | Password reset by emailed link | 2.6 | Not started |
 | FR8 | Administrator-assisted password reset | 2.6 | Not started |
@@ -58,13 +58,13 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | SR2 | Password policy per NIST SP 800-63B-4 | 2.1 | **Verified** | 13 rule tests; list of 99,840 common passwords; lengths 15 to 128, NFKC |
 | SR3 | Login throttling; same message for unknown email and wrong password | 2.2 | **Verified (API)** | Same answer for every failure; lock after 4 failures; unknown emails counted the same way |
 | SR4 | Secure session cookie, CSRF protection | 1.3, 2.2 | **Verified** | Cookie flags tested in development and production; the screens send the CSRF header on every change; storage checked empty in the browser |
-| SR5 | Role and ownership checks; deny by default | 2.3 onward | Groundwork | `get_auth` and `get_auth_with_csrf` in place; role checks arrive in 2.3 |
+| SR5 | Role and ownership checks; deny by default | 2.3 onward | **Mechanism verified** | Unknown role gets nothing; refusals logged; every non-open route answers 401 when signed out. Ownership checks (404 for others' data) come with the request endpoints |
 | SR6 | Validation, parameterised queries, safe output | 2.1 onward | Partly verified | SQLAlchemy used for all database access so far; email format check; React escapes text |
 | SR7 | Photo upload checks and private storage | 3.2 | Not started | |
 | SR8 | Access code, verified email, rate limits on registration and reset | 2.5, 2.6 | Not started | |
 | SR9 | Single-use, time-limited, hashed tokens | 2.5, 2.6 | Not started | |
 | SR10 | Secrets from environment; refuse to start without them | 1.1, 1.2 | **Verified** | 27 configuration tests; start-without-secret check; staged files scanned for passwords before the first commit |
-| SR11 | Generic errors; log events without secrets | 1.1, 2.2 | **Verified** | Audit log tested to hold no passwords; application account cannot edit or delete entries |
+| SR11 | Generic errors; log events without secrets | 1.1, 2.2 | **Verified** | Audit log holds no passwords; refusals logged without naming the permission needed |
 | SR12 | HTTPS, security headers, restricted CORS | 1.1, Phase 5, 6 | Partly verified | CORS and hidden docs tested; HTTPS and headers pending |
 | SR13 | Application account cannot change the schema | 1.2 | **Verified** | 7 database tests; manual psql check |
 | SR14 | Pinned and audited dependencies at every step | Every step | **Verified through Step 1.3** | pip-audit clean (Step 1.2); npm audit: 0 vulnerabilities; package-lock.json and requirements.lock.txt record exact versions |

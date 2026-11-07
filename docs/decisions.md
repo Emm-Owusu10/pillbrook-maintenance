@@ -59,6 +59,13 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 | D46 | The System status page stays open to signed-out visitors. | It shows only whether the server is up and helps staff tell a connection problem from a server problem. A detailed Administrator-only page may follow in Phase 5. |
 | D47 | Signing out on purpose returns to the public home page; a session that ends by itself returns to the sign-in page with "Your session has ended." | Each case needs a different next step. |
 | D48 | If signing out fails because the connection is lost, the person stays signed in and is told so. | Otherwise they could believe they had signed out while the server still held their session. |
+| D49 | A function the person's role does not allow answers 403. Someone else's data (for example another person's request) will answer 404, so nobody can learn that it exists. | Refusing and hiding are different needs. |
+| D50 | Every refused attempt is recorded in the audit log (`access_denied`, with the permission name and the address). The reply never names the permission. | Repeated refusals can reveal probing. |
+| D51 | The permission table is `app/permissions.py`: 13 permissions, three roles, read-only at run time. A role the table does not know gets nothing. The role is read from the database on every request. | One place to read, check and change the rules; changes apply at once. |
+| D52 | The server sends the role's permissions at sign-in and in `/api/auth/me`. The screens only hide links and show "You don't have permission"; the server enforces everything. | The rules live in one place, and hiding a link is not security. |
+| D53 | A test advertises every route through the application's own description and requires that each one not on the open list answers a signed-out visitor with 401. | A function added without a guard fails the build. It cannot catch a guard with the wrong permission. |
+| D54 | Exactly three routes are open: `GET /api/health`, `POST /api/auth/login`, `POST /api/auth/logout`. A test counts them. | Opening a route must be a deliberate, reviewed decision. |
+| D55 | Never mark a route `include_in_schema=False` (it would hide it from D53). Every new endpoint gets a role-by-role test and its permission is listed against Table 3.3. | Closes the gap D53 leaves. |
 
 ## Render free tier (checked 27 to 28 October; re-check before deployment)
 
@@ -85,3 +92,4 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 | Chapter Three changes: Sessions entity in the supporting ERD; FR4 limits (4 in 10 minutes, 10-minute lock); FR6 limits (60 minutes idle, 12 hours absolute); audit log columns and its append-only rule | Before the chapter is submitted |
 | Chapter Three changes: login and sign-out behaviour, the "My account" page, the sign-in screen's show-password box | Before the chapter is submitted |
 | Keep a private copy of `backend/.env` (for example in a password manager). It is not in Git, so a damaged file cannot be restored from the repository | Now |
+| Chapter Three changes: the 13 permission names, the 403 versus 404 policy, the `access_denied` audit event, and the weaker "no unguarded route" guarantee | Before the chapter is submitted |

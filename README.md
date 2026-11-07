@@ -121,3 +121,5 @@ Run the backend and the frontend in two separate PowerShell windows. Start the b
 | A test shows an old folder name or `???` for its source | Stale cache after a rename. Delete `.pytest_cache` and the `__pycache__` folders. |
 | `The common-password list is missing` | `backend\app\data\common_passwords.txt` is not there. Download it again (see `app/data/README.md`). |
 | `.env line N is not in KEY=VALUE form` | A line in `backend\.env` was split, damaged or pasted over. Open the file, go to that line (Ctrl+G in VS Code) and put each setting on one line. Keep a private copy of `.env` somewhere safe. |
+
+Backend tests: 163 expected. Frontend tests: 59 expected.

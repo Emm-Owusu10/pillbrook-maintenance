@@ -172,6 +172,36 @@ a retry screen when the server cannot be reached; the home page greets a signed-
   correct. The whole test file was replaced.
 - `backend/.env` was found with a malformed line 21 (`.env line 21 is not in KEY=VALUE form`), so the
   backend refused to start. The configuration check worked as designed. Fixed by correcting the file.
+- The cause of the problem was a copy-paste error: the line was meant to be a comment, but the `#` was missing.
+## Step 2.3: Role-based access control (5 November)
+
+**Built:** Chapter Three's permission table (Table 3.3) as code (13 permissions, read-only at run time);
+guards for protected functions (`require_signed_in` and `require_permission`, the second with an option
+for anything that changes data); the role is read from the database on every request, so a change applies
+at once; a refusal answers 403 without saying what was needed and is recorded in the audit log;
+sign-in and `/api/auth/me` return the role's permissions; screens show menu links by permission and a
+"You don't have permission" page.
+
+**Files:** backend `app/permissions.py`, `app/access.py` (new), `app/auth.py`, `app/schemas.py`,
+`app/audit.py` (changed), tests `test_permissions.py`, `test_route_guards.py`, `test_access.py`;
+frontend `src/navigation.js`, `src/RequirePermission.jsx`, `src/pages/Forbidden.jsx` (new), `auth.jsx`,
+`App.jsx`, `test/mockApi.js` (changed), tests `navigation.test.js`, `RequirePermission.test.jsx`,
+`permissions.test.jsx`. No new packages.
+
+**Results:** backend 163 passed; frontend 59 passed in 9 files; build clean; `npm audit` 0
+vulnerabilities; `pip-audit` clean; `bandit` 0 issues; the Administrator's `/api/auth/me` listed 12
+permissions as expected.
+
+**Problems and fixes:**
+- My first "every route has a guard" test walked `app.routes`, but this FastAPI version keeps included
+  routes inside an `_IncludedRouter`, so the test saw no routes. Two of its tests passed without checking
+  anything; only a third, which compared the open-route list with the routes that exist, caught it.
+- A second attempt (capturing the route during a request) also failed on this version.
+- The final test uses only public behaviour: it reads the routes the application advertises, sends a
+  request with no sign-in to each one that is not on the open list, and requires 401. A scratch route added
+  without a guard proves the check can fail.
+- This check cannot tell that a route has the wrong permission. Each endpoint therefore gets its own
+  role-by-role test (decision D55).
 
 **Problems and fixes:** none in this step.
 

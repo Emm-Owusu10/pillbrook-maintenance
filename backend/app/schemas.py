@@ -20,4 +20,5 @@ class UserOut(BaseModel):
 
 class AuthOut(BaseModel):
     user: UserOut
+    permissions: list[str]
     csrf_token: str

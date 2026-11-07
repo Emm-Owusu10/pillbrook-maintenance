@@ -13,6 +13,7 @@ LOGIN_FAILURE = "login_failure"
 LOGIN_LOCKED = "login_locked"
 LOGOUT = "logout"
 SESSION_EXPIRED = "session_expired"
+ACCESS_DENIED = "access_denied"
 
 
 def record(

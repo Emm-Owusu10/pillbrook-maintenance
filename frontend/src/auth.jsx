@@ -7,6 +7,8 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [status, setStatus] = useState("loading"); // "loading", "signedIn", "signedOut" or "unreachable"
   const [user, setUser] = useState(null);
+  // What this person's role may do. The server decides; the screens only follow.
+  const [permissions, setPermissions] = useState([]);
   const [notice, setNotice] = useState("");
   // True after the person pressed Sign out, so protected pages send them home, not to the sign-in page.
   const [signedOutOnPurpose, setSignedOutOnPurpose] = useState(false);
@@ -14,6 +16,7 @@ export function AuthProvider({ children }) {
   const applySignedIn = useCallback((data) => {
     setCsrfToken(data.csrf_token);
     setUser(data.user);
+    setPermissions(Array.isArray(data.permissions) ? data.permissions : []);
     setStatus("signedIn");
     setNotice("");
     setSignedOutOnPurpose(false);
@@ -22,6 +25,7 @@ export function AuthProvider({ children }) {
   const applySignedOut = useCallback(() => {
     setCsrfToken(null);
     setUser(null);
+    setPermissions([]);
     setStatus("signedOut");
   }, []);
 
@@ -75,12 +79,13 @@ export function AuthProvider({ children }) {
     setSignedOutOnPurpose(true);
   }, [applySignedOut]);
 
+  const can = useCallback((permission) => permissions.includes(permission), [permissions]);
   const clearNotice = useCallback(() => setNotice(""), []);
   const retry = useCallback(() => check(), [check]);
 
   const value = useMemo(
-    () => ({ status, user, notice, signedOutOnPurpose, clearNotice, signIn, signOut, retry }),
-    [status, user, notice, signedOutOnPurpose, clearNotice, signIn, signOut, retry],
+    () => ({ status, user, permissions, can, notice, signedOutOnPurpose, clearNotice, signIn, signOut, retry }),
+    [status, user, permissions, can, notice, signedOutOnPurpose, clearNotice, signIn, signOut, retry],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

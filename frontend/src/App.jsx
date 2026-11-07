@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router";
 
 import { useAuth } from "./auth.jsx";
+import { NAV_ITEMS, visibleNavItems } from "./navigation.js";
 import Account from "./pages/Account.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
@@ -11,7 +12,8 @@ import RequireAuth from "./RequireAuth.jsx";
 import { roleLabel } from "./roles.js";
 
 function Header() {
-  const { status, user, signOut } = useAuth();
+  const auth = useAuth();
+  const { status, user, signOut } = auth;
   const navigate = useNavigate();
   const [signOutError, setSignOutError] = useState("");
 
@@ -32,7 +34,11 @@ function Header() {
       <nav aria-label="Main">
         <Link to="/">Home</Link>
         <Link to="/status">System status</Link>
-        {status === "signedIn" && <Link to="/account">My account</Link>}
+        {visibleNavItems(NAV_ITEMS, auth).map((item) => (
+          <Link key={item.to} to={item.to}>
+            {item.label}
+          </Link>
+        ))}
         {status === "signedOut" && <Link to="/login">Sign in</Link>}
       </nav>
       {status === "signedIn" && (
