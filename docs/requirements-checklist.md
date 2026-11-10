@@ -8,13 +8,13 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | ID | Requirement (short) | Planned step | Status |
 |---|---|---|---|
 | FR1 | Register with name, email, password, farm access code | 2.5 | Not started |
-| FR2 | Email verification link before login | 2.5 | Not started |
+| FR2 | Email verification link before login | 2.5 (built); real sending later | Not started | Built but off until email is enabled |
 | FR3 | New accounts get the Farm User role | 2.5 | Not started |
 | FR4 | Login by email and password; limit failed attempts | 2.2 | **Verified** | API tests, screen tests and browser checks; lock after 4 failures in 10 minutes |
 | FR5 | Restrict every function by role | 2.3, then each step | **Mechanism verified** | Table 3.3 as code; 11 role-by-role tests; screens follow. Each function is checked as it is built |
 | FR6 | Logout and idle session expiry | 2.2 | **Verified** | Sign-out tested in the API, the screens and the browser; idle (60 min) and absolute (12 h) expiry tested in the API; a notice is shown when a session ends |
-| FR7 | Password reset by emailed link | 2.6 | Not started |
-| FR8 | Administrator-assisted password reset | 2.6 | Not started |
+| FR7 | Password reset by emailed link | 2.6 (built); real sending later | Not started | Built but off until email is enabled |
+| FR8 | Administrator-assisted password reset | 2.6 | Not started (priority raised to Must) | One-time temporary password, shown once |
 | FR9 | Administrator manages users and roles | 2.7 | Not started |
 | FR10 | Administrator changes access code; Facility Manager views it | 2.7 | Not started |
 | FR11 | Submit request with up to two photos | 3.1, 3.2 | Not started |

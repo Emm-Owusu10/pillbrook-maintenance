@@ -11,10 +11,11 @@ the API, then the screens, each confirmed separately. Nothing is cut or reordere
 | 2.1 | Users table, Argon2id hashing, password policy, first Administrator | SR1, SR2 | Done |
 | 2.2 | Login, sessions, logout, idle expiry, throttling, audit log | FR4, FR6, FR29, SR3, SR4 | Done |
 | 2.3 | Role-based access control | FR5, SR5 | Done |
-| 2.4 | Email sending (log mode in development; provider interface) | Supports FR2, FR7 |
-| 2.5 | Farm access code, registration, email verification | FR1, FR2, FR3, SR8, SR9 |
-| 2.6 | Password reset and administrator-assisted reset | FR7, FR8 |
+| 2.4 | Mailer foundation: switched off or saved as files, safety checks, settings | Supports FR2, FR7 |
+| 2.5 | Farm access code, registration, email verification built but off in production | FR1, FR2 (when email is on), FR3, SR8, SR9 |
+| 2.6 | Administrator-assisted reset with a one-time temporary password, a server command to recover the Administrator, and reset by emailed link built but off until email is on | FR7, FR8 |
 | 2.7 | User management and access code management | FR9, FR10 |
+| Later | Real email sending: Resend with pbafish.com (for example notify.pbafish.com), daily cap, a built-in HTTPS call | Turns FR2 and FR7 on |
 | 3.1 | Submit, validate, store requests | FR11, FR12, FR14 |
 | 3.2 | Photos: validation, metadata removal, private storage | FR13, SR7 |
 | 3.3 | Own requests, edit window | FR15, FR16 |

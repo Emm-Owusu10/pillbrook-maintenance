@@ -4,6 +4,7 @@ Rules enforced here (fail fast, fail safe):
 - A missing or weak SECRET_KEY stops the application from starting.
 - ENVIRONMENT defaults to "production", so a forgotten setting never turns on development features.
 - CORS origins must be exact; "*" is rejected.
+- MAIL_MODE is "off" unless set; "outbox" (emails saved as files) is refused in production.
 - The application's database account must exist, must not be the "postgres" superuser, and must
   differ from the account used for migrations.
 - Error messages name the setting that is wrong but never print its value (database URLs hold passwords).
@@ -16,8 +17,10 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 DEFAULT_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+DEFAULT_OUTBOX_DIR = Path(__file__).resolve().parent.parent / "outbox"
 MIN_SECRET_LENGTH = 32
 VALID_ENVIRONMENTS = ("development", "production")
+VALID_MAIL_MODES = ("off", "outbox")
 DATABASE_SCHEME = "postgresql+psycopg"
 _ACCOUNT_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]{0,62}")
 
@@ -32,6 +35,8 @@ class Settings:
     secret_key: str = field(repr=False)  # repr=False keeps secrets out of logs and tracebacks
     cors_origins: tuple[str, ...] = ()
     database_url: str | None = field(default=None, repr=False)
+    mail_mode: str = "off"  # "off": nothing is sent; "outbox": development only, emails saved as files
+    require_email_verification: bool = False
 
     @property
     def is_development(self) -> bool:
@@ -75,6 +80,13 @@ def merged_environment(
     env: dict[str, str] = _read_env_file(env_file) if env_file else {}
     env.update(os.environ if environ is None else environ)
     return env
+
+
+def _parse_bool(name: str, value: str) -> bool:
+    lowered = value.strip().lower()
+    if lowered in ("true", "false"):
+        return lowered == "true"
+    raise ConfigError(f"{name} must be 'true' or 'false'")
 
 
 def _check_database_url(name: str, url: str) -> str:
@@ -135,11 +147,27 @@ def load_settings(
     if migration_url and _check_database_url("MIGRATION_DATABASE_URL", migration_url) == app_account:
         raise ConfigError("MIGRATION_DATABASE_URL and DATABASE_URL must use different accounts")
 
+    mail_mode = env.get("MAIL_MODE", "off").strip().lower()
+    if mail_mode == "provider":
+        raise ConfigError("MAIL_MODE=provider is not available yet. Use 'off' or, in development, 'outbox'.")
+    if mail_mode not in VALID_MAIL_MODES:
+        raise ConfigError("MAIL_MODE must be 'off' or 'outbox'")
+    if mail_mode == "outbox" and environment == "production":
+        raise ConfigError("MAIL_MODE=outbox is for development only")
+
+    require_verification = _parse_bool(
+        "REQUIRE_EMAIL_VERIFICATION", env.get("REQUIRE_EMAIL_VERIFICATION", "false")
+    )
+    if require_verification and mail_mode == "off":
+        raise ConfigError("REQUIRE_EMAIL_VERIFICATION=true needs email to be turned on (MAIL_MODE)")
+
     return Settings(
         environment=environment,
         secret_key=secret_key,
         cors_origins=origins,
         database_url=database_url,
+        mail_mode=mail_mode,
+        require_email_verification=require_verification,
     )
 
 

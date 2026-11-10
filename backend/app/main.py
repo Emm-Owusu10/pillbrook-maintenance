@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from . import auth
 from .config import DEFAULT_ENV_FILE, Settings, load_settings
 from .database import make_engine
+from .mailer import make_mailer
 
 logger = logging.getLogger("pillbrook")
 
@@ -36,6 +37,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings
+    app.state.mailer = make_mailer(settings)
+    logger.info("Email mode: %s", settings.mail_mode)
     app.state.engine = engine
     app.state.session_factory = (
         sessionmaker(bind=engine, expire_on_commit=False) if engine is not None else None
