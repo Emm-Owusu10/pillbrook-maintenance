@@ -78,6 +78,8 @@ pillbrook-maintenance\
 | Check the database connection | `python -m app.check_db` |
 | Dependency audit | `python -m pip_audit` |
 | Code security scan | `python -m bandit -r app alembic` |
+| Set or change the farm access code | `python -m app.set_access_code` |
+| Open registration (first time) | Run the command above and give the code to the people on the farm |
 
 In development, API documentation is at http://127.0.0.1:8000/api/docs (it is hidden in production).
 
@@ -121,5 +123,7 @@ Run the backend and the frontend in two separate PowerShell windows. Start the b
 | A test shows an old folder name or `???` for its source | Stale cache after a rename. Delete `.pytest_cache` and the `__pycache__` folders. |
 | `The common-password list is missing` | `backend\app\data\common_passwords.txt` is not there. Download it again (see `app/data/README.md`). |
 | `.env line N is not in KEY=VALUE form` | A line in `backend\.env` was split, damaged or pasted over. Open the file, go to that line (Ctrl+G in VS Code) and put each setting on one line. Keep a private copy of `.env` somewhere safe. |
+| `ModuleNotFoundError: No module named 'app'` | The command was run from the project root. Run backend commands from `backend`. |
 
-Backend tests: 163 expected. Frontend tests: 59 expected.
+
+Backend tests: 252 expected. Frontend tests: 59 expected.

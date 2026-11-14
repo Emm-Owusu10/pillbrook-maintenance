@@ -8,6 +8,9 @@ All addresses start with `/api`. Interactive documentation is at `/api/docs` in 
 | POST | `/api/auth/login` | anyone | Body `{"email", "password"}` (JSON only). On success returns the user, the role's `permissions` and a CSRF token, and sets the session cookie |
 | GET | `/api/auth/me` | signed in | Returns the user, the role's `permissions` and the CSRF token |
 | POST | `/api/auth/logout` | signed in | Needs the `X-CSRF-Token` header. Ends the session and clears the cookie. Harmless if nobody is signed in |
+| POST | `/api/auth/register` | anyone | Body `{"name", "email", "password", "access_code"}`. Needs the farm access code. Creates a Farm User. Returns `verification_required` and `verification_email_sent` |
+| POST | `/api/auth/verify-email` | anyone | Body `{"token"}`. Confirms an address once with the code from an email |
+| POST | `/api/auth/resend-verification` | anyone | Body `{"email"}`. Always answers 202 with the same message |
 
 ## Answers to know
 
@@ -21,6 +24,12 @@ missing or wrong. With "You do not have permission to do this." the person's rol
 function; the attempt is recorded in the audit log. Someone else's data answers 404, never 403.
 | 422 | The request body was malformed. The reply names the fields, never the values |
 | 429 | Too many failed attempts for that email. Try again after the time in `Retry-After` (600 seconds) |
+| 400 | The confirmation link is not valid or has expired (unknown, used and expired look alike) |
+| 409 | An account with this email address already exists (only after the access code was correct) |
+| 202 | Accepted: used by the resend endpoint whether or not an email was sent |
+`403` on registration means the farm access code is wrong or registration is not open yet. `429` means
+registration is paused after too many wrong codes; the `Retry-After` header says how long (600 seconds).
+Errors in the details come back as `422` with a list of `{field, message}` entries.
 
 ## Sessions
 

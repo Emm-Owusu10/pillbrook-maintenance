@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, String, Uuid, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, String, Text, Uuid, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
@@ -61,3 +61,33 @@ class AuditLog(Base):
     target: Mapped[str | None] = mapped_column(String(254))
     detail: Mapped[str | None] = mapped_column(String(255))
     ip_address: Mapped[str | None] = mapped_column(String(45))  # filled in once Render's proxy is understood
+
+
+class FarmSetting(Base):
+    """Settings for the whole farm. The access code is kept encrypted (decision D62)."""
+
+    __tablename__ = "farm_settings"
+
+    setting_key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value_encrypted: Mapped[str] = mapped_column(Text)
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.user_id", ondelete="SET NULL"))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
+
+
+class AuthToken(Base):
+    """A one-time link for confirming an email address or resetting a password. Only a fingerprint is kept."""
+
+    __tablename__ = "auth_tokens"
+    __table_args__ = (
+        CheckConstraint("purpose IN ('verify_email', 'reset_password')", name="purpose_allowed"),
+    )
+
+    token_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"), index=True)
+    purpose: Mapped[str] = mapped_column(String(30))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

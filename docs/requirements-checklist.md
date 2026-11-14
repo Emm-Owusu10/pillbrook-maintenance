@@ -7,9 +7,9 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 
 | ID | Requirement (short) | Planned step | Status |
 |---|---|---|---|
-| FR1 | Register with name, email, password, farm access code | 2.5 | Not started |
-| FR2 | Email verification link before login | 2.5 (built); real sending later | Not started | Built but off until email is enabled |
-| FR3 | New accounts get the Farm User role | 2.5 | Not started |
+| FR1 | Register with name, email, password, farm access code | 2.5 | **API verified**; screens in 2.5b | 22 API tests; a test person registered from PowerShell |
+| FR2 | Email verification link before login | 2.5 (built); real sending later | **Built and tested, off** | Works end to end with the outbox; enabled by REQUIRE_EMAIL_VERIFICATION |
+| FR3 | New accounts get the Farm User role | 2.5 | **Verified** | Registration always creates role `user` |
 | FR4 | Login by email and password; limit failed attempts | 2.2 | **Verified** | API tests, screen tests and browser checks; lock after 4 failures in 10 minutes |
 | FR5 | Restrict every function by role | 2.3, then each step | **Mechanism verified** | Table 3.3 as code; 11 role-by-role tests; screens follow. Each function is checked as it is built |
 | FR6 | Logout and idle session expiry | 2.2 | **Verified** | Sign-out tested in the API, the screens and the browser; idle (60 min) and absolute (12 h) expiry tested in the API; a notice is shown when a session ends |
@@ -61,8 +61,8 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | SR5 | Role and ownership checks; deny by default | 2.3 onward | **Mechanism verified** | Unknown role gets nothing; refusals logged; every non-open route answers 401 when signed out. Ownership checks (404 for others' data) come with the request endpoints |
 | SR6 | Validation, parameterised queries, safe output | 2.1 onward | Partly verified | SQLAlchemy used for all database access so far; email format check; React escapes text |
 | SR7 | Photo upload checks and private storage | 3.2 | Not started | |
-| SR8 | Access code, verified email, rate limits on registration and reset | 2.5, 2.6 | Not started | |
-| SR9 | Single-use, time-limited, hashed tokens | 2.5, 2.6 | Not started | |
+| SR8 | Access code, verified email, rate limits on registration and reset | 2.5, 2.6 | Partly verified | Access code (encrypted), pause after 10 wrong codes, 3 resends per address per hour; per-visitor limits in Phase 5 |
+| SR9 | Single-use, time-limited, hashed tokens | 2.5, 2.6 | **Verified** | 12 token tests and the registration flow: random, single use, 24 hours, fingerprint only |
 | SR10 | Secrets from environment; refuse to start without them | 1.1, 1.2 | **Verified** | 27 configuration tests; start-without-secret check; staged files scanned for passwords before the first commit |
 | SR11 | Generic errors; log events without secrets | 1.1, 2.2 | **Verified** | Audit log holds no passwords; refusals logged without naming the permission needed |
 | SR12 | HTTPS, security headers, restricted CORS | 1.1, Phase 5, 6 | Partly verified | CORS and hidden docs tested; HTTPS and headers pending |

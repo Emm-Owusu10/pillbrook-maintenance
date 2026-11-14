@@ -60,6 +60,9 @@ PUBLIC_ROUTES = MappingProxyType(
         ("GET", "/api/health"): "shows only that the server is up",
         ("POST", "/api/auth/login"): "how people sign in",
         ("POST", "/api/auth/logout"): "works with or without a session, and changes nothing without one",
+        ("POST", "/api/auth/register"): "how people on the farm create an account; needs the farm access code",
+        ("POST", "/api/auth/verify-email"): "confirms an address with a one-time code from an email",
+        ("POST", "/api/auth/resend-verification"): "asks for another confirmation email; always answers the same way",
     }
 )
 

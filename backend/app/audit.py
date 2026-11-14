@@ -1,4 +1,4 @@
-"""The audit log: who did what, and when. Never put passwords or session codes in here."""
+"""The audit log: who did what, and when. Never put passwords, codes or one-time links in here."""
 import uuid
 from datetime import datetime
 
@@ -14,6 +14,13 @@ LOGIN_LOCKED = "login_locked"
 LOGOUT = "logout"
 SESSION_EXPIRED = "session_expired"
 ACCESS_DENIED = "access_denied"
+REGISTRATION_SUCCESS = "registration_success"
+REGISTRATION_CODE_FAILURE = "registration_code_failure"
+REGISTRATION_PAUSED = "registration_paused"
+EMAIL_VERIFIED = "email_verified"
+VERIFICATION_REQUESTED = "verification_requested"
+VERIFICATION_EMAIL_FAILED = "verification_email_failed"
+ACCESS_CODE_CHANGED = "access_code_changed"
 
 
 def record(
@@ -28,6 +35,16 @@ def record(
     db.add(AuditLog(event_type=event_type, actor_id=actor_id, target=target, detail=detail))
 
 
+def recent_times(
+    db: Session, event_type: str, since: datetime, *, target: str | None = None, limit: int = 50
+) -> list[datetime]:
+    """Times of recent events of one kind (newest first), optionally for one target only."""
+    query = select(AuditLog.created_at).where(AuditLog.event_type == event_type, AuditLog.created_at > since)
+    if target is not None:
+        query = query.where(AuditLog.target == target)
+    return list(db.scalars(query.order_by(AuditLog.created_at.desc()).limit(limit)))
+
+
 def failures_since_last_success(db: Session, email: str, now: datetime) -> list[datetime]:
     """Times of recent wrong logins for this email, ignoring any before its last successful login."""
     since = now - FAILURE_WINDOW
@@ -38,10 +55,4 @@ def failures_since_last_success(db: Session, email: str, now: datetime) -> list[
     )
     if last_success is not None:
         since = last_success
-    rows = db.scalars(
-        select(AuditLog.created_at)
-        .where(AuditLog.event_type == LOGIN_FAILURE, AuditLog.target == email, AuditLog.created_at > since)
-        .order_by(AuditLog.created_at.desc())
-        .limit(MAX_FAILURES + 1)
-    )
-    return list(rows)
+    return recent_times(db, LOGIN_FAILURE, since, target=email, limit=MAX_FAILURES + 1)

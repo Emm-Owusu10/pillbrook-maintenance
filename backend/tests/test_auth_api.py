@@ -71,14 +71,24 @@ def test_every_kind_of_failed_login_gets_the_same_answer(api, email, password):
     assert "set-cookie" not in response.headers
 
 
-def test_unverified_and_deactivated_accounts_cannot_log_in(make_db_app, add_user):
+def test_unverified_accounts_cannot_log_in_when_verification_is_required(make_db_app, add_user):
     add_user(email="new@farm-mail.org", verified=False)
+    client = TestClient(make_db_app(mail_mode="outbox", require_email_verification=True))
+    response = _login(client, "new@farm-mail.org")
+    assert response.status_code == 401
+    assert response.json() == GENERIC
+
+
+def test_unverified_accounts_can_log_in_when_verification_is_not_required(make_db_app, add_user):
+    add_user(email="new@farm-mail.org", verified=False)
+    assert _login(TestClient(make_db_app()), "new@farm-mail.org").status_code == 200
+
+
+def test_deactivated_accounts_cannot_log_in(make_db_app, add_user):
     add_user(email="gone@farm-mail.org", active=False)
-    client = TestClient(make_db_app())
-    for email in ("new@farm-mail.org", "gone@farm-mail.org"):
-        response = _login(client, email)
-        assert response.status_code == 401
-        assert response.json() == GENERIC
+    response = _login(TestClient(make_db_app()), "gone@farm-mail.org")
+    assert response.status_code == 401
+    assert response.json() == GENERIC
 
 
 def test_login_needs_a_json_body(api):

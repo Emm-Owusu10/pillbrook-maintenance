@@ -79,7 +79,10 @@ def login(body: LoginIn, request: Request, response: Response, db: Session = Dep
 
     user = db.scalar(select(User).where(User.email == email)) if email is not None else None
     password_ok = verify_password(user.password_hash if user else _dummy_hash(), body.password)
-    allowed = bool(user and password_ok and user.is_active and user.email_verified_at is not None)
+    verified_ok = user is not None and (
+        user.email_verified_at is not None or not settings.require_email_verification
+    )
+    allowed = bool(user and password_ok and user.is_active and verified_ok)
 
     if not allowed:
         detail = None

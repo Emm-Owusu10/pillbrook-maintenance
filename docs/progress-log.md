@@ -203,9 +203,61 @@ permissions as expected.
 - This check cannot tell that a route has the wrong permission. Each endpoint therefore gets its own
   role-by-role test (decision D55).
 
+  ## Step 2.5a: Registration, farm access code, email verification: the API (13 to 14 November)
+
+**Built:** farm access code stored encrypted (Fernet, with a key derived from SECRET_KEY) and a command to set
+it (`python -m app.set_access_code`); registration (`POST /api/auth/register`) that checks, in this order, a
+pause, the access code, the details, and duplicate addresses; a pause after 10 wrong codes in 10 minutes for
+the whole farm; one-time links (24 hours, single use, only a fingerprint stored, code placed after a `#`);
+email verification that is built and tested but off unless `REQUIRE_EMAIL_VERIFICATION=true`; a resend
+endpoint limited to 3 per address per hour that always answers the same way; unverified accounts can sign in
+while verification is off; migration 0004 (`farm_settings`, `auth_tokens`); `PUBLIC_BASE_URL` setting.
+
+**Files:** `app/access_code.py`, `app/farm.py`, `app/auth_tokens.py`, `app/registration.py`,
+`app/set_access_code.py`, `alembic/versions/0004_farm_settings_and_auth_tokens.py` (new); `app/config.py`,
+`app/models.py`, `app/audit.py`, `app/throttle.py`, `app/schemas.py`, `app/auth.py`, `app/main.py`,
+`app/permissions.py` (changed); tests `test_access_code.py`, `test_farm.py`, `test_auth_tokens.py`,
+`test_registration_api.py`, `test_registration_throttle.py`, `test_registration_config.py` (new),
+`test_auth_api.py`, `test_permissions.py`, `test_database.py` (changed). New package: `cryptography` 50.0.2.
+
+**Results:** 252 backend tests passed; migration 0004 applied; `pip-audit` clean; `bandit` 0 issues; a test
+person registered as an unverified Farm User; the stored access code starts `gAAAA`; a repeat registration
+returned the duplicate-address answer.
+
+**Problems and fixes:**
+- `pip-audit` reported two new advisories in packages we did not add (`dnspython` 2.9.1 and
+  `opentelemetry-api` 1.45.1). Both were upgraded (2.9.2 and 1.45.2) and the lock file regenerated.
+- One of my tests counted every audit entry, including the `access_code_changed` entry made by the test
+  setup. The test now counts only registration events.
+- `bandit` flagged the label `RESET_PASSWORD` (B105). It is a name for a kind of link, not a password, so it
+  carries `# nosec B105` with the reason on the line above (decision D70).
+- A first registration was refused because the password contained words from the person's name and email.
+  The rule worked as designed.
+
 **Problems and fixes:** none in this step.
 
 ## Unresolved
 
 - Repository scan for committed secrets (SR10): no source control in use yet.
 - `requirements.lock.txt` includes development tools. A production-only list comes in Phase 6.
+## Step 2.4: Mailer foundation (9 to 10 November)
+
+**Built:** a mailer with two modes: `off` (nothing is sent) and `outbox` (development only: each email is
+saved as a text file in `backend/outbox`); checks on every message (no line breaks in recipient or subject,
+a valid address, size limits); file names with time and random characters, never the address; logs and
+errors that never repeat a message's content; settings `MAIL_MODE` and `REQUIRE_EMAIL_VERIFICATION`
+(the second can only be true while email is on); production refuses `outbox`. Real sending (Resend with
+`pbafish.com`) is postponed (decisions D56 to D61).
+
+**Files:** `app/mailer.py`, `tests/test_mailer.py`, `tests/test_mail_config.py` (new); `app/config.py`,
+`app/main.py`, `.env.example`, root `.gitignore` (changed). No new packages.
+
+**Results:** 190 backend tests passed; `pip-audit` clean; `bandit` 0 issues in 1,071 lines; production
+refused `MAIL_MODE=outbox`; a test email was saved to the outbox with no address in its file name and the
+folder is ignored by Git.
+
+**Problems and fixes:**
+- The first production check passed instead of refusing, because `MAIL_MODE=outbox` was missing from the
+  real `.env`, so the default (`off`) applied. Adding the setting made the refusal appear.
+- The outbox command was first run from the project root instead of `backend`, giving
+  `No module named 'app'`.

@@ -5,6 +5,8 @@ Rules enforced here (fail fast, fail safe):
 - ENVIRONMENT defaults to "production", so a forgotten setting never turns on development features.
 - CORS origins must be exact; "*" is rejected.
 - MAIL_MODE is "off" unless set; "outbox" (emails saved as files) is refused in production.
+- PUBLIC_BASE_URL (used in links inside emails) must be an exact address, and https in production
+  when email verification is required.
 - The application's database account must exist, must not be the "postgres" superuser, and must
   differ from the account used for migrations.
 - Error messages name the setting that is wrong but never print its value (database URLs hold passwords).
@@ -37,6 +39,7 @@ class Settings:
     database_url: str | None = field(default=None, repr=False)
     mail_mode: str = "off"  # "off": nothing is sent; "outbox": development only, emails saved as files
     require_email_verification: bool = False
+    public_base_url: str = "http://127.0.0.1:5173"  # the address people use; links in emails start with it
 
     @property
     def is_development(self) -> bool:
@@ -161,6 +164,12 @@ def load_settings(
     if require_verification and mail_mode == "off":
         raise ConfigError("REQUIRE_EMAIL_VERIFICATION=true needs email to be turned on (MAIL_MODE)")
 
+    public_base_url = env.get("PUBLIC_BASE_URL", "http://127.0.0.1:5173").strip()
+    if not public_base_url.startswith(("http://", "https://")) or public_base_url.endswith("/"):
+        raise ConfigError("PUBLIC_BASE_URL must look like http://127.0.0.1:5173 (no trailing slash)")
+    if environment == "production" and require_verification and not public_base_url.startswith("https://"):
+        raise ConfigError("PUBLIC_BASE_URL must use https:// in production")
+
     return Settings(
         environment=environment,
         secret_key=secret_key,
@@ -168,6 +177,7 @@ def load_settings(
         database_url=database_url,
         mail_mode=mail_mode,
         require_email_verification=require_verification,
+        public_base_url=public_base_url,
     )
 
 
