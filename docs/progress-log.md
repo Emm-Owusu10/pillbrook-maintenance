@@ -203,6 +203,7 @@ permissions as expected.
 - This check cannot tell that a route has the wrong permission. Each endpoint therefore gets its own
   role-by-role test (decision D55).
 
+
   ## Step 2.5a: Registration, farm access code, email verification: the API (13 to 14 November)
 
 **Built:** farm access code stored encrypted (Fernet, with a key derived from SECRET_KEY) and a command to set
@@ -236,6 +237,27 @@ returned the duplicate-address answer.
 
 **Problems and fixes:** none in this step.
 
+
+## Brand styling and landing page (17 November)
+
+**Built:** a stylesheet whose colours are variables measured from the Pill Brook logo (navy `#141444`, orange
+`#EC6C3C`, plus a brighter blue `#1F4FBF`); a navy header with a sun-and-fish mark on every page; a full-width
+landing page for signed-out visitors (headline, "Create an account" and "Sign in" buttons, artwork, a wave into a
+three-step "How it works"); a page layout that keeps every other page in the simple 40 rem container.
+
+**Files:** `BrandMark.jsx`, `HeroArt.jsx`, `PageLayout.jsx`, `pages/Landing.jsx`, `pages/Home.test.jsx` (new);
+`App.jsx`, `pages/Home.jsx`, `styles.css` (changed). No new packages; the backend did not change.
+
+**Results:** 96 frontend tests passed in 13 files; build 39 modules, 279 kB (88 kB compressed); `npm audit` 0
+vulnerabilities; every text and background pairing in the palette passes the 4.5:1 contrast standard (white on the
+orange button would have failed at 3.1:1, so the buttons use navy text at 5.6:1); screenshots checked at desktop
+width and at 400 px wide.
+
+**Problems and fixes:**
+- The logo's accent is orange, not yellow as first described. The orange was used, and a yellow is one line
+  (`--accent`).
+- In my first preview the small fish in the artwork was cut off at the bottom of its frame; it was moved up inside
+  the frame.
 ## Unresolved
 
 - Repository scan for committed secrets (SR10): no source control in use yet.
@@ -261,3 +283,21 @@ folder is ignored by Git.
   real `.env`, so the default (`off`) applied. Adding the setting made the refusal appear.
 - The outbox command was first run from the project root instead of `backend`, giving
   `No module named 'app'`.
+## Step 2.5b: Register and confirm-email screens (16 to 17 November)
+
+**Built:** a Register page (name, email, password typed twice, "Show passwords", farm access code shown as
+typed and capitalised, the password rules listed above the password box); messages placed next to the right
+field, and separate messages for a wrong code, closed registration, a pause (with the wait), an address already
+registered and a lost connection; the password boxes are emptied only when the server refused the password;
+after registering, a notice on the sign-in page, or a "Check your email" page with a resend form when
+verification is on; a "Confirm your email" page that reads the one-time code from the link, removes it from the
+address bar at once and sends it once; "Create an account" links on the sign-in page and the home page.
+
+**Files:** `ResendVerification.jsx`, `pages/Register.jsx`, `pages/VerifyEmail.jsx` (new); `pages/Login.jsx`,
+`pages/Home.jsx`, `App.jsx`, `styles.css` (changed); tests `ResendVerification.test.jsx` (4),
+`pages/VerifyEmail.test.jsx` (9), `pages/Register.test.jsx` (17). No new packages; the backend did not change.
+
+**Results:** 89 frontend tests passed in 12 files; build 35 modules, 275 kB (87 kB compressed); `npm audit` 0
+vulnerabilities. Checked in the browser: the rules above the password box, "Show passwords", the access code
+turning to capitals, registration with verification off (notice on sign-in), registration with verification on
+(Check your email, link from the outbox, the code removed from the address bar, a second use of the link refused).

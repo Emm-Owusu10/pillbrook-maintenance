@@ -2,12 +2,16 @@ import { useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router";
 
 import { useAuth } from "./auth.jsx";
+import BrandMark from "./BrandMark.jsx";
 import { NAV_ITEMS, visibleNavItems } from "./navigation.js";
 import Account from "./pages/Account.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import Register from "./pages/Register.jsx";
 import Status from "./pages/Status.jsx";
+import VerifyEmail from "./pages/VerifyEmail.jsx";
+import PageLayout from "./PageLayout.jsx";
 import RequireAuth from "./RequireAuth.jsx";
 import { roleLabel } from "./roles.js";
 
@@ -30,7 +34,10 @@ function Header() {
 
   return (
     <header className="site-header">
-      <p className="site-title">Pill Brook Facility Maintenance</p>
+      <p className="site-title">
+        <BrandMark />
+        Pill Brook Facility Maintenance
+      </p>
       <nav aria-label="Main">
         <Link to="/">Home</Link>
         <Link to="/status">System status</Link>
@@ -64,17 +71,19 @@ export default function App() {
   return (
     <>
       <Header />
-      <main className="page">
-        <Routes>
-          <Route path="/" element={<Home />} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route element={<PageLayout />}>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/status" element={<Status />} />
           <Route element={<RequireAuth />}>
             <Route path="/account" element={<Account />} />
           </Route>
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
+        </Route>
+      </Routes>
     </>
   );
 }

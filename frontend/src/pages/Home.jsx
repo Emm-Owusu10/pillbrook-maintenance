@@ -1,14 +1,19 @@
-import { Link } from "react-router";
-
 import { useAuth } from "../auth.jsx";
 import { roleLabel } from "../roles.js";
 import SessionGate from "../SessionGate.jsx";
+import Landing from "./Landing.jsx";
 
 export default function Home() {
+  const { status } = useAuth();
+  // The landing page for a signed-out visitor fills the width of the screen. Every other state
+  // (checking, server unreachable, signed in) sits in the normal page container.
+  const landing = status === "signedOut";
   return (
-    <SessionGate>
-      <HomeContent />
-    </SessionGate>
+    <main className={landing ? undefined : "page"}>
+      <SessionGate>
+        <HomeContent />
+      </SessionGate>
+    </main>
   );
 }
 
@@ -25,16 +30,5 @@ function HomeContent() {
     );
   }
 
-  return (
-    <section>
-      <h1>Report and track maintenance faults</h1>
-      <p>
-        Anyone on the farm will be able to report broken or faulty equipment here, with photos,
-        and follow the repair until it is confirmed fixed.
-      </p>
-      <p>
-        <Link to="/login">Sign in</Link> to get started.
-      </p>
-    </section>
-  );
+  return <Landing />;
 }

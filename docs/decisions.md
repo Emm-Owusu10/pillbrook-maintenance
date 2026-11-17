@@ -26,6 +26,9 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 | D13 | React, FastAPI, PostgreSQL. | Specified in the project document. |
 | D14 | SQLAlchemy 2 with Alembic, psycopg 3, Argon2id, Vite with React Router, Pillow, pytest, pip-audit, bandit. | Parameterised queries, versioned schema, current password hashing, minimal frontend tooling, tested and scanned code. |
 | ID | Decision | Reason |
+| D15 | One Render web service serves the API and the built React files from one origin, with a secure session cookie. | Avoids cross-site cookie problems. |
+| D16 | Photo storage and hosting plan: provider to be chosen. The email service is decided in D61 (Resend, when email is turned on). | Updated 17 November. See D22 and D61. |
+| D17 | Development on Windows without Docker, using PostgreSQL 18.2 installed directly. | Docker is not installed. Render offers PostgreSQL 18. |
 |---|---|---|
 | D18 | A small built-in `.env` reader instead of a library. | One fewer dependency. |
 | D19 | `ENVIRONMENT` defaults to production. API docs exist only in development. | A forgotten setting must not enable developer features. |
@@ -82,6 +85,14 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 | D69 | `cryptography` was added (approved). `pip-audit` found advisories in `dnspython` and `opentelemetry-api` (installed through other packages) on 13 November; both were upgraded. | SR14. Audits are re-run at every step. |
 | D70 | Bandit finding B105 on the label `RESET_PASSWORD` is a reviewed false positive, suppressed on that line only with the reason beside it. | The label names a kind of link, not a password. |
 | D71 | `PUBLIC_BASE_URL` (default `http://127.0.0.1:5173`) is the address placed at the start of links in emails. It must be exact, with no trailing slash, and https in production when verification is required. | A link must never be built from the request, which an attacker could influence. |
+| D72 | Brand colours come from the Pill Brook logo: navy `#141444` and orange `#EC6C3C`, plus a brighter blue `#1F4FBF`. They are variables at the top of `styles.css`. The logo's accent is orange, so the accent is orange; a yellow is one line (`--accent`). | One place to change the look; measured from the supplied logo on 17 November. |
+| D73 | Button text on the orange accent is navy (5.6:1 contrast); white on that orange fails (3.1:1). Every text and background pairing in the palette was checked against 4.5:1. | NFR1 and accessibility. |
+| D74 | The header is navy with white links on every page. The signed-out landing page is a full-width hero (headline, two buttons, artwork, a wave into white) followed by a three-step "How it works". Other pages keep the simple 40 rem layout. | Matches the reference system's structure. The artwork is an original drawing of the logo's sun and fish, to be replaced by official artwork. |
+| D75 | A confirmation link opens a page, and the page sends the code. Opening the link does not confirm the address by itself. | Email security tools open every link to scan it; a link that confirmed on opening could be triggered by a scanner. |
+| D76 | The page reads the code from the part of the link after `#`, replaces the address at once so the code is not left in the address bar or the history, never stores it, and sends it once even when React runs its effect twice. | The code is a secret for 24 hours. |
+| D77 | On the Register page the passwords are typed twice and are emptied only when the server refused the password; the access code is shown as typed and capitalised; the rules appear above the password box. | A mistyped code should not make someone retype two long passwords; masking a 12-character code on a phone causes mistakes. |
+| D78 | After registering, the person goes to the sign-in page with "Account created. You can now sign in." (no automatic sign-in); when verification is on, a "Check your email" page with a resend form appears instead. | Simpler and safer: a session starts only through a real sign-in. |
+
 
 ## Render free tier (checked 27 to 28 October; re-check before deployment)
 
@@ -113,3 +124,6 @@ Every decision that shaped the system, with the reason. Dates are 2026.
 | Chapter Three changes for email: FR2 and FR7 are enabled by a setting and the prototype runs with email off; FR8 moves from Should to Must; a Visitor cannot "verify email" or "reset password" until then; the diagrams and permission wording change a little | Before the chapter is submitted |
 | Set the real farm access code on the production server and tell the Facility Manager | Step 6 (deployment) |
 | Chapter Three changes: registration limits (10 wrong codes in 10 minutes), the encrypted access code, one-time link details (24 hours, single use, fingerprint only), the three new open routes, and `value_encrypted` in the Farm_Setting entity | Before the chapter is submitted |
+| Official Pill Brook logo and artwork (SVG or transparent PNG) to replace the stand-in drawing; confirm the accent (orange as in the logo, or yellow) with the company | Before Chapter Four screenshots are final |
+| Chapter Three changes: the Register screen fields, the "Check your email" and "Confirm your email" screens, and the rule that a link opens a page that sends the code | Before the chapter is submitted |
+| Chapter Four screenshots still to take: Register page (empty, with rules), a refused password, a wrong access code, Check your email, the outbox email, the confirmed page, and the expired-link page | Before the chapter is submitted |

@@ -7,8 +7,8 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 
 | ID | Requirement (short) | Planned step | Status |
 |---|---|---|---|
-| FR1 | Register with name, email, password, farm access code | 2.5 | **API verified**; screens in 2.5b | 22 API tests; a test person registered from PowerShell |
-| FR2 | Email verification link before login | 2.5 (built); real sending later | **Built and tested, off** | Works end to end with the outbox; enabled by REQUIRE_EMAIL_VERIFICATION |
+| FR1 | Register with name, email, password, farm access code | 2.5 | **Verified** | 22 API tests, 17 screen tests, and browser checks |
+| FR2 | Email verification link before login | 2.5 (built); real sending later | **Built, tested, off** | API and screens work end to end through the outbox; enabled by REQUIRE_EMAIL_VERIFICATION |
 | FR3 | New accounts get the Farm User role | 2.5 | **Verified** | Registration always creates role `user` |
 | FR4 | Login by email and password; limit failed attempts | 2.2 | **Verified** | API tests, screen tests and browser checks; lock after 4 failures in 10 minutes |
 | FR5 | Restrict every function by role | 2.3, then each step | **Mechanism verified** | Table 3.3 as code; 11 role-by-role tests; screens follow. Each function is checked as it is built |

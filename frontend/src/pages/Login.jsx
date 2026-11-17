@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Navigate, useLocation } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
 
 import { ApiError } from "../api.js";
 import { useAuth } from "../auth.jsx";
@@ -46,6 +46,9 @@ function LoginForm() {
     return <Navigate to={safeDestination(location.state?.from)} replace />;
   }
 
+  // A notice can come from the sign-in state ("your session has ended") or from the page before this one.
+  const shownNotice = notice || location.state?.notice;
+
   async function handleSubmit(event) {
     event.preventDefault();
     if (submitting) return;
@@ -69,9 +72,9 @@ function LoginForm() {
   return (
     <section>
       <h1>Sign in</h1>
-      {notice && (
+      {shownNotice && (
         <p className="notice" role="status">
-          {notice}
+          {shownNotice}
         </p>
       )}
       {error && (
@@ -119,6 +122,9 @@ function LoginForm() {
           {submitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
+      <p>
+        New here? <Link to="/register">Create an account</Link>
+      </p>
     </section>
   );
 }
