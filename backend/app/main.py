@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import sessionmaker
 
-from . import auth, registration
+from . import account, admin_users, auth, registration
 from .config import DEFAULT_ENV_FILE, Settings, load_settings
 from .database import make_engine
 from .mailer import make_mailer
@@ -74,6 +74,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     api = APIRouter(prefix="/api")
     api.include_router(auth.router)
     api.include_router(registration.router)
+    api.include_router(account.router)
+    api.include_router(admin_users.router)
 
     @api.get("/health", tags=["meta"])
     def health() -> dict[str, str]:

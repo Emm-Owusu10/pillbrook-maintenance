@@ -19,6 +19,7 @@ from .tokens import csrf_matches
 CSRF_HEADER = "X-CSRF-Token"
 DENIED_MESSAGE = "You do not have permission to do this."
 CSRF_MESSAGE = "The request could not be verified. Reload the page and try again."
+MUST_CHANGE_MESSAGE = "You must choose a new password before you continue."
 
 
 @dataclass
@@ -47,7 +48,12 @@ def get_auth_with_csrf(request: Request, auth: Auth = Depends(get_auth)) -> Auth
 
 
 def require_signed_in(auth: Auth = Depends(get_auth)) -> Auth:
-    """For functions every signed-in person may use, whatever their role."""
+    """For reading who is signed in. Allowed even while a new password must be chosen."""
+    return auth
+
+
+def require_signed_in_with_csrf(auth: Auth = Depends(get_auth_with_csrf)) -> Auth:
+    """For changes any signed-in person may make, such as changing their own password."""
     return auth
 
 
@@ -60,6 +66,9 @@ def require_permission(permission: Permission, *, changes_data: bool = False) ->
         auth: Auth = Depends(authenticate),
         db: Session = Depends(get_db),
     ) -> Auth:
+        # Until a temporary password has been replaced, nothing else is allowed.
+        if auth.user.must_change_password:
+            raise HTTPException(status_code=403, detail=MUST_CHANGE_MESSAGE)
         if not has_permission(auth.user.role, permission):
             # Recorded so that repeated attempts show up. The reply never says what was needed.
             audit.record(

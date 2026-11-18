@@ -11,6 +11,11 @@ All addresses start with `/api`. Interactive documentation is at `/api/docs` in 
 | POST | `/api/auth/register` | anyone | Body `{"name", "email", "password", "access_code"}`. Needs the farm access code. Creates a Farm User. Returns `verification_required` and `verification_email_sent` |
 | POST | `/api/auth/verify-email` | anyone | Body `{"token"}`. Confirms an address once with the code from an email |
 | POST | `/api/auth/resend-verification` | anyone | Body `{"email"}`. Always answers 202 with the same message |
+| GET | `/api/auth/options` | anyone | `{"email_reset_available": true or false}` |
+| POST | `/api/auth/change-password` | signed in | Body `{"current_password", "new_password"}` plus `X-CSRF-Token`. Works even on a temporary password. Returns 204 |
+| POST | `/api/auth/forgot-password` | anyone | Body `{"email"}`. Always answers 202 with the same message |
+| POST | `/api/auth/reset-password` | anyone | Body `{"token", "new_password"}` with the code from an emailed link. Returns 204 |
+| POST | `/api/admin/users/reset-password` | `manage_users` | Body `{"email"}` plus `X-CSRF-Token`. Returns the name, email, a one-time `temporary_password` and `expires_at` (`Cache-Control: no-store`) |
 
 ## Answers to know
 
@@ -30,6 +35,11 @@ function; the attempt is recorded in the audit log. Someone else's data answers 
 `403` on registration means the farm access code is wrong or registration is not open yet. `429` means
 registration is paused after too many wrong codes; the `Retry-After` header says how long (600 seconds).
 Errors in the details come back as `422` with a list of `{field, message}` entries.
+Sign-in and `/api/auth/me` now include `must_change_password`. While it is true, every function except
+`/api/auth/me`, change password and sign-out answers `403` with "You must choose a new password before you
+continue." (a different message from the permission refusal). Wrong guesses at the current password on the change
+page answer `403` and count towards the same lock, which then answers `429`.
+
 
 ## Sessions
 

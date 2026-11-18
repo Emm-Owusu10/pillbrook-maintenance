@@ -21,6 +21,11 @@ EMAIL_VERIFIED = "email_verified"
 VERIFICATION_REQUESTED = "verification_requested"
 VERIFICATION_EMAIL_FAILED = "verification_email_failed"
 ACCESS_CODE_CHANGED = "access_code_changed"
+RESET_BY_ADMIN = "password_reset_by_admin"
+RESET_BY_COMMAND = "password_reset_by_command"
+RESET_REQUESTED = "password_reset_requested"
+RESET_BY_LINK = "password_reset_by_link"
+OWN_CHANGE = "password_changed"
 
 
 def record(

@@ -92,6 +92,7 @@ In development, API documentation is at http://127.0.0.1:8000/api/docs (it is hi
 | Dependency audit | `npm audit` |
 | Create the first Administrator (once) | `python -m app.create_admin` |
 | Measure password hashing speed | `python -m app.measure_hashing` |
+| Give someone a temporary password from the server | `python -m app.reset_password` |
 
 Run the backend and the frontend in two separate PowerShell windows. Start the backend first.
 
@@ -126,4 +127,4 @@ Run the backend and the frontend in two separate PowerShell windows. Start the b
 | `ModuleNotFoundError: No module named 'app'` | The command was run from the project root. Run backend commands from `backend`. |
 
 
-Backend tests: 252 expected. Frontend tests: 96 expected.
+Backend tests: 296 expected. Frontend tests: 96 expected.

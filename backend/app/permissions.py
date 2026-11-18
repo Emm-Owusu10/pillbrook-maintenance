@@ -63,6 +63,9 @@ PUBLIC_ROUTES = MappingProxyType(
         ("POST", "/api/auth/register"): "how people on the farm create an account; needs the farm access code",
         ("POST", "/api/auth/verify-email"): "confirms an address with a one-time code from an email",
         ("POST", "/api/auth/resend-verification"): "asks for another confirmation email; always answers the same way",
+        ("GET", "/api/auth/options"): "tells the screens whether reset by email is possible; nothing else",
+        ("POST", "/api/auth/forgot-password"): "asks for a reset email; always answers the same way",
+        ("POST", "/api/auth/reset-password"): "chooses a new password with a one-time code from an email",
     }
 )
 

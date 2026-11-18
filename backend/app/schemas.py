@@ -1,5 +1,7 @@
 import uuid
 
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -21,6 +23,7 @@ class UserOut(BaseModel):
 class AuthOut(BaseModel):
     user: UserOut
     permissions: list[str]
+    must_change_password: bool
     csrf_token: str
 
 
@@ -52,3 +55,33 @@ class ResendIn(BaseModel):
 
 class MessageOut(BaseModel):
     message: str
+
+
+
+class ChangePasswordIn(BaseModel):
+    current_password: str = Field(max_length=1024)
+    new_password: str = Field(max_length=1024)
+
+
+class ForgotIn(BaseModel):
+    email: str = Field(max_length=320)
+
+
+class ResetIn(BaseModel):
+    token: str = Field(max_length=200)
+    new_password: str = Field(max_length=1024)
+
+
+class OptionsOut(BaseModel):
+    email_reset_available: bool
+
+
+class AdminResetIn(BaseModel):
+    email: str = Field(max_length=320)
+
+
+class TemporaryPasswordOut(BaseModel):
+    name: str
+    email: str
+    temporary_password: str
+    expires_at: datetime

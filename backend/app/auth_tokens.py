@@ -6,7 +6,7 @@ nothing usable. A token works once and expires.
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import delete, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from .models import AuthToken
@@ -16,6 +16,7 @@ VERIFY_EMAIL = "verify_email"
 # A label for the kind of one-time link, not a password (bandit's B105 reacts to the word).
 RESET_PASSWORD = "reset_password"  # nosec B105
 VERIFICATION_LIFETIME = timedelta(hours=24)
+RESET_LIFETIME = timedelta(hours=1)
 
 
 def issue(db: Session, user_id: uuid.UUID, purpose: str, lifetime: timedelta) -> str:
@@ -38,6 +39,18 @@ def issue(db: Session, user_id: uuid.UUID, purpose: str, lifetime: timedelta) ->
         )
     )
     return raw
+
+
+def peek(db: Session, raw_token: str, purpose: str) -> uuid.UUID | None:
+    """Whose token this is, if it is still usable, without using it up."""
+    return db.scalar(
+        select(AuthToken.user_id).where(
+            AuthToken.token_hash == hash_token(raw_token),
+            AuthToken.purpose == purpose,
+            AuthToken.used_at.is_(None),
+            AuthToken.expires_at > datetime.now(timezone.utc),
+        )
+    )
 
 
 def consume(db: Session, raw_token: str, purpose: str) -> uuid.UUID | None:

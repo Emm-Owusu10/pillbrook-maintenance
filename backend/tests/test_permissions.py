@@ -73,4 +73,4 @@ def test_the_rules_cannot_be_changed_while_the_application_runs():
 
 def test_the_roles_match_the_database_rule():
     assert set(ROLE_PERMISSIONS) == {"admin", "manager", "user"}
-    assert len(PUBLIC_ROUTES) == 6  # a new open route must be a deliberate decision
+    assert len(PUBLIC_ROUTES) == 9  # a new open route must be a deliberate decision

@@ -14,6 +14,7 @@ from .models import User
 from .passwords import hash_password, needs_rehash, verify_password
 from .permissions import permissions_for
 from .schemas import AuthOut, LoginIn, UserOut
+from .temp_password import normalise_temporary_password
 from .throttle import LOCK_DURATION, is_locked, reaches_limit
 from .tokens import csrf_matches, csrf_token_for
 
@@ -34,6 +35,7 @@ def _auth_reply(settings, user: User, raw_token: str) -> AuthOut:
     return AuthOut(
         user=UserOut.model_validate(user),
         permissions=sorted(permission.value for permission in permissions_for(user.role)),
+        must_change_password=user.must_change_password,
         csrf_token=csrf_token_for(settings.secret_key, raw_token),
     )
 
@@ -78,16 +80,31 @@ def login(body: LoginIn, request: Request, response: Response, db: Session = Dep
         )
 
     user = db.scalar(select(User).where(User.email == email)) if email is not None else None
-    password_ok = verify_password(user.password_hash if user else _dummy_hash(), body.password)
+    supplied = body.password
+    if user is not None and user.must_change_password:
+        # A temporary password may be typed without its dashes, in any case.
+        supplied = normalise_temporary_password(supplied)
+    password_ok = verify_password(user.password_hash if user else _dummy_hash(), supplied)
     verified_ok = user is not None and (
         user.email_verified_at is not None or not settings.require_email_verification
     )
-    allowed = bool(user and password_ok and user.is_active and verified_ok)
+    temporary_expired = bool(
+        user is not None
+        and user.must_change_password
+        and user.temporary_password_expires_at is not None
+        and user.temporary_password_expires_at <= now
+    )
+    allowed = bool(user and password_ok and user.is_active and verified_ok and not temporary_expired)
 
     if not allowed:
         detail = None
         if user is not None and password_ok:
-            detail = "inactive account" if not user.is_active else "email not verified"
+            if not user.is_active:
+                detail = "inactive account"
+            elif temporary_expired:
+                detail = "temporary password expired"
+            else:
+                detail = "email not verified"
         audit.record(db, audit.LOGIN_FAILURE, target=email, detail=detail)
         db.flush()
         if email is not None and reaches_limit(audit.failures_since_last_success(db, email, now), now):
@@ -96,7 +113,7 @@ def login(body: LoginIn, request: Request, response: Response, db: Session = Dep
         raise HTTPException(status_code=401, detail=GENERIC_FAILURE)  # the same answer for every failure
 
     if needs_rehash(user.password_hash):
-        user.password_hash = hash_password(body.password)  # upgrade to the current settings
+        user.password_hash = hash_password(supplied)  # upgrade to the current settings
     old_code = request.cookies.get(settings.session_cookie_name)
     if old_code:
         sessions.end_session(db, old_code)  # a new login never reuses an old session

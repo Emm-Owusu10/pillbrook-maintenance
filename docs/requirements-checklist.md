@@ -13,8 +13,8 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | FR4 | Login by email and password; limit failed attempts | 2.2 | **Verified** | API tests, screen tests and browser checks; lock after 4 failures in 10 minutes |
 | FR5 | Restrict every function by role | 2.3, then each step | **Mechanism verified** | Table 3.3 as code; 11 role-by-role tests; screens follow. Each function is checked as it is built |
 | FR6 | Logout and idle session expiry | 2.2 | **Verified** | Sign-out tested in the API, the screens and the browser; idle (60 min) and absolute (12 h) expiry tested in the API; a notice is shown when a session ends |
-| FR7 | Password reset by emailed link | 2.6 (built); real sending later | Not started | Built but off until email is enabled |
-| FR8 | Administrator-assisted password reset | 2.6 | Not started (priority raised to Must) | One-time temporary password, shown once |
+| FR7 | Password reset by emailed link | 2.6 (built); real sending later | **Built, tested, off** | 12 API tests; works end to end through the outbox; enabled by turning email on |
+| FR8 | Administrator-assisted password reset | 2.6 | **API verified**; screens in 2.6b | 11 API tests, the forced-change rule, the server command, and a live check from PowerShell 
 | FR9 | Administrator manages users and roles | 2.7 | Not started |
 | FR10 | Administrator changes access code; Facility Manager views it | 2.7 | Not started |
 | FR11 | Submit request with up to two photos | 3.1, 3.2 | Not started |
@@ -62,7 +62,7 @@ Status as of the end of Step 1.3 (30 October 2026). Source: Chapter Three, revis
 | SR6 | Validation, parameterised queries, safe output | 2.1 onward | Partly verified | SQLAlchemy used for all database access so far; email format check; React escapes text |
 | SR7 | Photo upload checks and private storage | 3.2 | Not started | |
 | SR8 | Access code, verified email, rate limits on registration and reset | 2.5, 2.6 | Partly verified | Access code (encrypted), pause after 10 wrong codes, 3 resends per address per hour; per-visitor limits in Phase 5 |
-| SR9 | Single-use, time-limited, hashed tokens | 2.5, 2.6 | **Verified** | 12 token tests and the registration flow: random, single use, 24 hours, fingerprint only |
+| SR9 | Single-use, time-limited, hashed tokens | 2.5, 2.6 | **Verified** | Verification links (24 hours) and reset links (1 hour): random, single use, fingerprint only |
 | SR10 | Secrets from environment; refuse to start without them | 1.1, 1.2 | **Verified** | 27 configuration tests; start-without-secret check; staged files scanned for passwords before the first commit |
 | SR11 | Generic errors; log events without secrets | 1.1, 2.2 | **Verified** | Audit log holds no passwords; refusals logged without naming the permission needed |
 | SR12 | HTTPS, security headers, restricted CORS | 1.1, Phase 5, 6 | Partly verified | CORS and hidden docs tested; HTTPS and headers pending |

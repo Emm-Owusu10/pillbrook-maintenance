@@ -12,7 +12,10 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint("role IN ('admin', 'manager', 'user')", name="role_allowed"),
-        CheckConstraint("email = lower(email)", name="email_lowercase"),
+        CheckConstraint(
+            "temporary_password_expires_at IS NULL OR must_change_password",
+            name="temporary_password_needs_change",
+        ),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -24,6 +27,8 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20))
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    temporary_password_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
     def __repr__(self) -> str:
