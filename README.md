@@ -126,4 +126,4 @@ Run the backend and the frontend in two separate PowerShell windows. Start the b
 | `ModuleNotFoundError: No module named 'app'` | The command was run from the project root. Run backend commands from `backend`. |
 
 
-Backend tests: 252 expected. Frontend tests: 59 expected.
+Backend tests: 252 expected. Frontend tests: 96 expected.
