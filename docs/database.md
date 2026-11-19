@@ -120,3 +120,11 @@ It can never create, alter, truncate or drop a table.
 | `request_edits` | 3.3 | Edits made in the 15-minute window |
 | `notifications` | 3.4 | In-app notifications |
 | `maintenance_records` | 3.6 | Actions recorded by the Facility Manager |
+
+
+## Indexes
+
+| Table | Index | Why |
+|---|---|---|
+| `sessions` | `user_id` | Find or end a person's sign-ins |
+| `audit_log` | `event_type, target, created_at` | Count recent events for the sign-in lock and the registration and reset limits |
